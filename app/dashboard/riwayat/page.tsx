@@ -18,6 +18,13 @@ export default function RiwayatPage() {
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
   const [loading, setLoading] = useState(true);
 
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("nama");
+    window.location.href = "/";
+  }
+
   async function fetchRiwayat() {
     setLoading(true);
     const res = await fetch("http://localhost:3000/transactions/recent");
@@ -57,32 +64,8 @@ export default function RiwayatPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 p-8">
+    <main className="p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-4 flex gap-4 text-sm">
-          <Link
-            href="/dashboard"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Master Data
-          </Link>
-          <span className="text-slate-900 font-semibold">
-            Riwayat Transaksi
-          </span>
-          <Link
-            href="/dashboard/insight"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            AI Insight
-          </Link>
-          <Link
-            href="/dashboard/po"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Purchase Order
-          </Link>
-        </div>
-
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">
             Riwayat Transaksi

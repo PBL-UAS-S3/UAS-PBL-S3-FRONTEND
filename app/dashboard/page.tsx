@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 type Product = {
   id: number;
   sku: string;
   nama: string;
-  kategori: string;
-  satuan: string;
+  kategori: string | null;
+  satuan: string | null;
   stok_saat_ini: number;
   stok_minimum: number;
 };
@@ -17,20 +17,14 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({
-    sku: "",
-    nama: "",
-    kategori: "",
-    satuan: "",
-    stok_saat_ini: 0,
-    stok_minimum: 0,
+    sku: '', nama: '', kategori: '', satuan: '', stok_saat_ini: 0, stok_minimum: 0,
   });
-  const [pesan, setPesan] = useState("");
+  const [pesan, setPesan] = useState('');
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   async function fetchProducts() {
-    const res = await fetch("http://localhost:3000/products");
+    const res = await fetch('http://localhost:3000/products');
     const data = await res.json();
     setProducts(data);
   }
@@ -40,28 +34,21 @@ export default function DashboardPage() {
   }, []);
 
   function resetForm() {
-    setForm({
-      sku: "",
-      nama: "",
-      kategori: "",
-      satuan: "",
-      stok_saat_ini: 0,
-      stok_minimum: 0,
-    });
+    setForm({ sku: '', nama: '', kategori: '', satuan: '', stok_saat_ini: 0, stok_minimum: 0 });
     setEditingId(null);
   }
 
   async function simpanProduk() {
-    setPesan("");
+    setPesan('');
     const url = editingId
       ? `http://localhost:3000/products/${editingId}`
-      : "http://localhost:3000/products";
-    const method = editingId ? "PUT" : "POST";
+      : 'http://localhost:3000/products';
+    const method = editingId ? 'PUT' : 'POST';
 
     const res = await fetch(url, {
       method,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(form),
@@ -73,7 +60,7 @@ export default function DashboardPage() {
       resetForm();
       fetchProducts();
     } else {
-      setPesan(data.error || "Gagal menyimpan produk");
+      setPesan(data.error || 'Gagal menyimpan produk');
     }
   }
 
@@ -82,17 +69,17 @@ export default function DashboardPage() {
     setForm({
       sku: p.sku,
       nama: p.nama,
-      kategori: p.kategori,
-      satuan: p.satuan,
+      kategori: p.kategori ?? '',
+      satuan: p.satuan ?? '',
       stok_saat_ini: p.stok_saat_ini,
       stok_minimum: p.stok_minimum,
     });
   }
 
   async function hapusProduk(id: number) {
-    if (!confirm("Yakin hapus produk ini?")) return;
+    if (!confirm('Yakin hapus produk ini?')) return;
     await fetch(`http://localhost:3000/products/${id}`, {
-      method: "DELETE",
+      method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchProducts();
@@ -100,24 +87,12 @@ export default function DashboardPage() {
 
   function statusBadge(p: Product) {
     if (p.stok_saat_ini <= p.stok_minimum) {
-      return (
-        <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-          Stok Menipis
-        </span>
-      );
+      return <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">Stok Menipis</span>;
     }
     if (p.stok_saat_ini <= p.stok_minimum * 1.5) {
-      return (
-        <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-          Perlu Dipantau
-        </span>
-      );
+      return <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">Perlu Dipantau</span>;
     }
-    return (
-      <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-        Aman
-      </span>
-    );
+    return <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full">Aman</span>;
   }
 
   return (
@@ -125,47 +100,22 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-4 flex gap-4 text-sm">
           <span className="text-slate-900 font-semibold">Master Data</span>
-          <Link
-            href="/dashboard/riwayat"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Riwayat Transaksi
-          </Link>
-          <Link
-            href="/dashboard/insight"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            AI Insight
-          </Link>
-          <Link
-            href="/dashboard/po"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Purchase Order
-          </Link>
+          <Link href="/dashboard/riwayat" className="text-blue-600 hover:text-blue-800 font-medium">Riwayat Transaksi</Link>
+          <Link href="/dashboard/insight" className="text-blue-600 hover:text-blue-800 font-medium">AI Insight</Link>
+          <Link href="/dashboard/po" className="text-blue-600 hover:text-blue-800 font-medium">Purchase Order</Link>
         </div>
 
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Master Data Inventory
-            </h1>
-            <p className="text-slate-500">
-              Kelola data produk dan pantau status stok gudang
-            </p>
+            <h1 className="text-2xl font-bold text-slate-900">Master Data Inventory</h1>
+            <p className="text-slate-500">Kelola data produk dan pantau status stok gudang</p>
           </div>
-          <Link
-            href="/dashboard/riwayat"
-            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-          >
-            Lihat Riwayat Transaksi →
-          </Link>
         </div>
 
         {/* Form Tambah/Edit */}
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">
-            {editingId ? "Edit Produk" : "Tambah Produk Baru"}
+            {editingId ? 'Edit Produk' : 'Tambah Produk Baru'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <input
@@ -197,30 +147,24 @@ export default function DashboardPage() {
               type="number"
               placeholder="Stok Saat Ini"
               value={form.stok_saat_ini}
-              onChange={(e) =>
-                setForm({ ...form, stok_saat_ini: Number(e.target.value) })
-              }
+              onChange={(e) => setForm({ ...form, stok_saat_ini: Number(e.target.value) })}
               className="border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="number"
               placeholder="Stok Minimum"
               value={form.stok_minimum}
-              onChange={(e) =>
-                setForm({ ...form, stok_minimum: Number(e.target.value) })
-              }
+              onChange={(e) => setForm({ ...form, stok_minimum: Number(e.target.value) })}
               className="border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          {pesan && (
-            <p className="text-red-600 mb-3 text-sm font-medium">{pesan}</p>
-          )}
+          {pesan && <p className="text-red-600 mb-3 text-sm font-medium">{pesan}</p>}
           <div className="flex gap-3">
             <button
               onClick={simpanProduk}
               className="bg-blue-600 text-white font-medium px-5 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              {editingId ? "Update Produk" : "+ Tambah Produk"}
+              {editingId ? 'Update Produk' : '+ Tambah Produk'}
             </button>
             {editingId && (
               <button
@@ -249,21 +193,12 @@ export default function DashboardPage() {
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr
-                  key={p.id}
-                  className="border-b border-slate-100 hover:bg-slate-50 transition"
-                >
-                  <td className="px-5 py-3 text-slate-500 font-mono text-sm">
-                    {p.sku}
-                  </td>
-                  <td className="px-5 py-3 font-medium text-slate-900">
-                    {p.nama}
-                  </td>
-                  <td className="px-5 py-3 text-slate-600">{p.kategori}</td>
-                  <td className="px-5 py-3 text-slate-600">{p.satuan}</td>
-                  <td className="px-5 py-3 font-semibold text-slate-900">
-                    {p.stok_saat_ini}
-                  </td>
+                <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
+                  <td className="px-5 py-3 text-slate-500 font-mono text-sm">{p.sku}</td>
+                  <td className="px-5 py-3 font-medium text-slate-900">{p.nama}</td>
+                  <td className="px-5 py-3 text-slate-600">{p.kategori || '-'}</td>
+                  <td className="px-5 py-3 text-slate-600">{p.satuan || '-'}</td>
+                  <td className="px-5 py-3 font-semibold text-slate-900">{p.stok_saat_ini}</td>
                   <td className="px-5 py-3">{statusBadge(p)}</td>
                   <td className="px-5 py-3 flex gap-3">
                     <button
@@ -283,10 +218,7 @@ export default function DashboardPage() {
               ))}
               {products.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-5 py-8 text-center text-slate-400"
-                  >
+                  <td colSpan={7} className="px-5 py-8 text-center text-slate-400">
                     Belum ada produk. Tambahkan produk pertamamu di atas.
                   </td>
                 </tr>

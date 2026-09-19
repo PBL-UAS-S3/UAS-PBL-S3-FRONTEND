@@ -30,10 +30,19 @@ export default function InsightPage() {
     setLoading(true);
     setPesan('');
     try {
-      const res = await fetch('http://localhost:3000/ai-insights');
+      const res = await fetch('http://localhost:3000/ai-insights', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
-      setInsights(data);
+
+      if (res.ok) {
+        setInsights(data);
+      } else {
+        setInsights([]);
+        setPesan(data.error || 'Gagal memuat data insight');
+      }
     } catch (err) {
+      setInsights([]);
       setPesan('Tidak dapat terhubung ke server');
     }
     setLoading(false);
@@ -163,7 +172,7 @@ export default function InsightPage() {
           {loading && (
             <div className="col-span-2 text-center text-slate-400 py-12">Memuat data...</div>
           )}
-          {!loading && insights.length === 0 && (
+          {!loading && insights.length === 0 && !pesan && (
             <div className="col-span-2 text-center text-slate-400 py-12 bg-white border border-slate-200 rounded-2xl">
               Belum ada analisis AI. Klik &quot;Generate Insight Baru&quot; untuk memulai.
             </div>

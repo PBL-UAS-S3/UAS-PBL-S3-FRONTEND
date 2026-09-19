@@ -23,9 +23,23 @@ export default function PurchaseOrderPage() {
 
   async function fetchPOs() {
     setLoading(true);
-    const res = await fetch('http://localhost:3000/purchase-orders');
-    const data = await res.json();
-    setPos(data);
+    setPesan('');
+    try {
+      const res = await fetch('http://localhost:3000/purchase-orders', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setPos(data);
+      } else {
+        setPos([]);
+        setPesan(data.error || 'Gagal memuat data Purchase Order');
+      }
+    } catch (err) {
+      setPos([]);
+      setPesan('Tidak dapat terhubung ke server');
+    }
     setLoading(false);
   }
 
@@ -107,7 +121,7 @@ export default function PurchaseOrderPage() {
                 {loading && (
                   <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Memuat data...</td></tr>
                 )}
-                {!loading && pos.length === 0 && (
+                {!loading && pos.length === 0 && !pesan && (
                   <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Belum ada Purchase Order. Buat dari halaman AI Insight.</td></tr>
                 )}
                 {pos.map((po) => (

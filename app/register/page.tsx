@@ -25,46 +25,40 @@ function IlustrasiGudang() {
   );
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
+  const [nama, setNama] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [telepon, setTelepon] = useState('');
   const [pesanError, setPesanError] = useState('');
+  const [pesanSukses, setPesanSukses] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function login() {
+  async function register() {
     setLoading(true);
     setPesanError('');
+    setPesanSukses('');
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ nama, email, password, telepon }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        setPesanError(data.error || 'Login gagal');
-        setLoading(false);
-        return;
+      if (response.ok) {
+        setPesanSukses('Akun berhasil dibuat! Mengarahkan ke halaman login...');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      } else {
+        setPesanError(data.error || 'Registrasi gagal');
       }
-
-      if (data.role !== 'manager') {
-        setPesanError(
-          'Web dashboard ini khusus untuk akun Manager. Akun kamu terdaftar sebagai Staf — gunakan aplikasi mobile untuk mencatat transaksi gudang.'
-        );
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role);
-      localStorage.setItem('nama', data.nama);
-      window.location.href = '/dashboard';
     } catch (err) {
       setPesanError('Gagal konek ke server');
-      setLoading(false);
     }
+    setLoading(false);
   }
 
   return (
@@ -77,12 +71,21 @@ export default function LoginPage() {
             <span className="font-bold text-xl text-slate-900">StockVision</span>
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome Back!</h1>
-          <p className="text-slate-500 mb-8">Masuk ke akun Anda untuk kelola gudang.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-1">Never lose track of an item again.</h1>
+          <p className="text-slate-500 mb-8">Daftarkan akun Manager untuk mulai mengelola gudang.</p>
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="text-xs font-medium text-slate-500 mb-1 block">Email</label>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">Nama Lengkap</label>
+              <input
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                placeholder="Nama kamu"
+                className="w-full bg-white border-b border-slate-300 py-2 focus:outline-none focus:border-blue-500 text-slate-900"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">Email Kerja</label>
               <input
                 type="email"
                 value={email}
@@ -92,12 +95,21 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-500 mb-1 block">Password</label>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">Buat Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Minimal 6 karakter"
+                className="w-full bg-white border-b border-slate-300 py-2 focus:outline-none focus:border-blue-500 text-slate-900"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1 block">Nomor Telepon (Opsional)</label>
+              <input
+                value={telepon}
+                onChange={(e) => setTelepon(e.target.value)}
+                placeholder="08xx-xxxx-xxxx"
                 className="w-full bg-white border-b border-slate-300 py-2 focus:outline-none focus:border-blue-500 text-slate-900"
               />
             </div>
@@ -108,31 +120,57 @@ export default function LoginPage() {
               {pesanError}
             </div>
           )}
+          {pesanSukses && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-lg px-4 py-3 mb-4">
+              {pesanSukses}
+            </div>
+          )}
 
           <button
-            onClick={login}
+            onClick={register}
             disabled={loading}
             className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
           >
-            {loading ? 'Memproses...' : 'Continue'}
+            {loading ? 'Memproses...' : 'Create Account'}
           </button>
 
+          <p className="text-xs text-slate-400 mt-4 text-center">
+            Akun baru terdaftar sebagai <b>Manager</b>. Untuk akun Staf Gudang, gunakan aplikasi mobile.
+          </p>
+
           <p className="text-center text-sm text-slate-500 mt-6">
-            Belum punya akun?{' '}
-            <Link href="/register" className="text-blue-600 font-medium hover:text-blue-800">
-              Buat akun
+            Sudah punya akun?{' '}
+            <Link href="/" className="text-blue-600 font-medium hover:text-blue-800">
+              Log in
             </Link>
           </p>
         </div>
       </div>
 
-      {/* Kanan: Panel abu-abu polos + ilustrasi (sesuai wireframe) */}
+      {/* Kanan */}
       <div className="hidden lg:flex w-1/2 bg-gray-100 items-center justify-center">
-        <div className="flex flex-col items-center text-center px-12">
-          <IlustrasiGudang />
-          <p className="text-slate-500 text-sm mt-6 max-w-xs">
-            Kelola stok gudang lebih cerdas dengan bantuan AI
-          </p>
+        <div className="flex flex-col items-center gap-6 px-12">
+          <div className="flex flex-col items-center text-center">
+            <IlustrasiGudang />
+            <p className="text-slate-500 text-sm mt-6 max-w-xs">
+              Simple, fast, dan powerful buat tim gudang kamu
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 w-24 text-center">
+              <span className="text-2xl block mb-1">📊</span>
+              <span className="text-xs text-slate-500">Dashboard</span>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4 w-24 text-center">
+              <span className="text-2xl block mb-1">✨</span>
+              <span className="text-xs text-slate-500">AI Insight</span>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4 w-24 text-center">
+              <span className="text-2xl block mb-1">🛒</span>
+              <span className="text-xs text-slate-500">Restock</span>
+            </div>
+          </div>
         </div>
       </div>
     </main>

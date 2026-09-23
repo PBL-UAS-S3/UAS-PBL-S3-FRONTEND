@@ -173,7 +173,7 @@ export default function InsightPage() {
             <h1 className="text-2xl font-bold text-slate-900">
               Peringatan Stok & AI Insight
             </h1>
-            <p className="text-slate-500">
+            <p className="text-sflate-500">
               Riwayat analisis prediktif dari histori transaksi 30 hari terakhir
             </p>
           </div>
@@ -256,7 +256,7 @@ export default function InsightPage() {
                         onChange={(e) =>
                           handleJumlahChange(item.sku, e.target.value)
                         }
-                        className="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-28 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                       />
                       <button
                         onClick={() =>

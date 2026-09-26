@@ -16,6 +16,12 @@ type Product = {
 
 const BASE_URL = 'http://localhost:3000';
 
+const PRESET_SATUAN = [
+  'Pcs', 'Lusin', 'Kodi', 'Gross', 'Rim', 'Pasang',
+  'Dus', 'Kotak', 'Karton', 'Pak', 'Bal', 'Sachet', 'Renceng',
+  'Kg', 'Gram', 'Ons', 'Liter', 'Ml', 'Meter', 'Cm',
+];
+
 type FormState = {
   nama: string;
   kategori: string;
@@ -86,6 +92,11 @@ export default function MasterDataPage() {
     setForm({ ...form, [field]: bersih });
   }
 
+  function formatRibuan(digits: string) {
+    if (!digits) return '';
+    return Number(digits).toLocaleString('id-ID');
+  }
+
   async function unggahGambar(file: File) {
     setUploading(true);
     setPesan('');
@@ -152,6 +163,23 @@ export default function MasterDataPage() {
     fetchProducts();
   }
 
+  function cetakBarcode(sku: string) {
+    const urlQr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(sku)}`;
+    const jendela = window.open('', '_blank', 'width=400,height=550');
+    if (!jendela) return;
+    jendela.document.write(`
+      <html>
+        <head><title>Barcode ${sku}</title></head>
+        <body style="text-align:center; font-family: sans-serif; padding: 24px;">
+          <img src="${urlQr}" style="width:250px;height:250px;" onload="window.print()" />
+          <p style="font-size:20px; font-weight:bold; margin-top:16px; letter-spacing:1px;">${sku}</p>
+          <p style="font-size:12px; color:#888;">Tempel label ini di kemasan produk</p>
+        </body>
+      </html>
+    `);
+    jendela.document.close();
+  }
+
   function statusKey(p: Product): 'aman' | 'perlu' | 'menipis' {
     if (p.stok_saat_ini <= p.stok_minimum) return 'menipis';
     if (p.stok_saat_ini <= p.stok_minimum * 1.5) return 'perlu';
@@ -188,6 +216,9 @@ export default function MasterDataPage() {
   }
 
   const daftarKategori = Array.from(new Set(products.map((p) => p.kategori).filter((k): k is string => !!k)));
+  const daftarSatuanGabungan = Array.from(
+    new Set([...PRESET_SATUAN, ...products.map((p) => p.satuan).filter((s): s is string => !!s)])
+  );
 
   const produkTersaring = products.filter((p) => {
     const cocokSearch = searchText === '' || p.nama.toLowerCase().includes(searchText.toLowerCase()) || p.sku.toLowerCase().includes(searchText.toLowerCase());
@@ -230,7 +261,7 @@ export default function MasterDataPage() {
 
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left" style={{ minWidth: 950 }}>
+            <table className="w-full text-left" style={{ minWidth: 1000 }}>
               <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
                 <tr>
                   <th className="px-5 py-3">Produk</th>
@@ -261,6 +292,7 @@ export default function MasterDataPage() {
                     <td className="px-5 py-3">{statusBadge(p)}</td>
                     <td className="px-5 py-3 flex gap-3 whitespace-nowrap">
                       <button onClick={() => bukaModalEdit(p)} className="text-blue-600 hover:text-blue-800 font-medium text-sm">Edit</button>
+                      <button onClick={() => cetakBarcode(p.sku)} className="text-slate-600 hover:text-slate-900 font-medium text-sm">🏷️ Barcode</button>
                       <button onClick={() => hapusProduk(p.id)} className="text-red-500 hover:text-red-700 font-medium text-sm">Hapus</button>
                     </td>
                   </tr>
@@ -323,30 +355,41 @@ export default function MasterDataPage() {
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Kategori</label>
+                  <label className="text-xs font-medium text-slate-500 mb-1 block">Kategori (pilih atau ketik baru)</label>
                   <input
+                    list="daftar-kategori-input"
                     placeholder="Contoh: Aksesoris"
                     value={form.kategori}
                     onChange={(e) => setForm({ ...form, kategori: e.target.value })}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  <datalist id="daftar-kategori-input">
+                    {daftarKategori.map((k) => <option key={k} value={k} />)}
+                  </datalist>
                 </div>
+
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Satuan</label>
+                  <label className="text-xs font-medium text-slate-500 mb-1 block">Satuan (pilih atau ketik baru)</label>
                   <input
-                    placeholder="Contoh: pcs, box"
+                    list="daftar-satuan-input"
+                    placeholder="Contoh: Pcs, Kg, Dus"
                     value={form.satuan}
                     onChange={(e) => setForm({ ...form, satuan: e.target.value })}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  <datalist id="daftar-satuan-input">
+                    {daftarSatuanGabungan.map((s) => <option key={s} value={s} />)}
+                  </datalist>
                 </div>
+
                 <div>
                   <label className="text-xs font-medium text-slate-500 mb-1 block">Harga per Unit (Rp)</label>
                   <input
-                    type="text" inputMode="numeric" pattern="[0-9]*"
+                    type="text" inputMode="numeric"
                     placeholder="0"
-                    value={form.harga}
+                    value={formatRibuan(form.harga)}
                     onChange={(e) => handleAngkaChange('harga', e.target.value)}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

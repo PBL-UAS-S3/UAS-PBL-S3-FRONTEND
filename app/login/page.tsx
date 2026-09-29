@@ -23,42 +23,48 @@ function IconMata({ terlihat }: { terlihat: boolean }) {
   );
 }
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const [nama, setNama] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tampilPassword, setTampilPassword] = useState(false);
-  const [telepon, setTelepon] = useState('');
   const [pesanError, setPesanError] = useState('');
-  const [pesanSukses, setPesanSukses] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function register() {
+  async function login() {
     setLoading(true);
     setPesanError('');
-    setPesanSukses('');
     try {
-      const response = await fetch('http://localhost:3000/auth/register', {
+      const response = await fetch('http://localhost:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nama, email, password, telepon }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setPesanSukses('Akun berhasil dibuat! Mengarahkan ke halaman login...');
-        setTimeout(() => {
-          router.push('/login');
-        }, 1500);
-      } else {
-        setPesanError(data.error || 'Registrasi gagal');
+      if (!response.ok) {
+        setPesanError(data.error || 'Login gagal');
+        setLoading(false);
+        return;
       }
+
+      if (data.role !== 'manager') {
+        setPesanError(
+          'Web dashboard ini khusus untuk akun Manager. Akun kamu terdaftar sebagai Staf — gunakan aplikasi mobile untuk mencatat transaksi gudang.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.role);
+      localStorage.setItem('nama', data.nama);
+      router.push('/dashboard');
     } catch (err) {
       setPesanError('Gagal konek ke server');
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -71,23 +77,12 @@ export default function RegisterPage() {
             <span className="font-bold text-xl text-slate-900">StockVision</span>
           </Link>
 
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Jangan sampai barang hilang lagi.</h1>
-          <p className="text-slate-600 text-base mb-8">
-            Akun baru terdaftar sebagai <b className="text-slate-700">Manager</b>. Untuk akun Staf Gudang, gunakan aplikasi mobile.
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Selamat Datang Kembali!</h1>
+          <p className="text-slate-600 text-base mb-8">Masuk ke akun Anda untuk kelola gudang.</p>
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Nama Lengkap</label>
-              <input
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
-                placeholder="Nama kamu"
-                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Email Kerja</label>
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Email</label>
               <input
                 type="email"
                 value={email}
@@ -97,13 +92,18 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Buat Password</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-semibold text-slate-700 block">Password</label>
+              </div>
               <div className="relative">
                 <input
                   type={tampilPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Minimal 6 karakter"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !loading) login();
+                  }}
+                  placeholder="••••••••"
                   className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
                 />
                 <button
@@ -115,15 +115,11 @@ export default function RegisterPage() {
                   <IconMata terlihat={tampilPassword} />
                 </button>
               </div>
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Nomor Telepon (Opsional)</label>
-              <input
-                value={telepon}
-                onChange={(e) => setTelepon(e.target.value)}
-                placeholder="08xx-xxxx-xxxx"
-                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
-              />
+              <div className="text-right mt-1.5">
+                <Link href="/lupa-password" className="text-sm text-[#B9540A] font-semibold hover:text-[#7A3505]">
+                  Lupa password?
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -132,24 +128,19 @@ export default function RegisterPage() {
               {pesanError}
             </div>
           )}
-          {pesanSukses && (
-            <div className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-base font-medium rounded-xl px-4 py-3 mb-4">
-              {pesanSukses}
-            </div>
-          )}
 
           <button
-            onClick={register}
+            onClick={login}
             disabled={loading}
             className="w-full bg-[#F2842F] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50 shadow-sm"
           >
-            {loading ? 'Memproses...' : 'Buat Akun'}
+            {loading ? 'Memproses...' : 'Masuk'}
           </button>
 
           <p className="text-center text-base text-slate-600 mt-6">
-            Sudah punya akun?{' '}
-            <Link href="/login" className="text-[#B9540A] font-semibold hover:text-[#7A3505]">
-              Masuk
+            Belum punya akun?{' '}
+            <Link href="/register" className="text-[#B9540A] font-semibold hover:text-[#7A3505]">
+              Buat akun
             </Link>
           </p>
         </div>
@@ -159,13 +150,13 @@ export default function RegisterPage() {
       <div className="hidden lg:relative lg:block w-1/2 bg-[#FBF8F5] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/paket4.png"
-          alt="Ilustrasi Gudang"
+          src="/paket3.png"
+          alt="Ilustrasi Paket Gudang"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-x-0 bottom-0 p-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-center">
           <p className="text-white text-lg font-medium max-w-sm mx-auto drop-shadow">
-            Simple, fast, dan powerful buat tim gudang kamu
+            Kelola stok gudang lebih cerdas dengan bantuan AI
           </p>
         </div>
       </div>

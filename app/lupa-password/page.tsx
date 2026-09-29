@@ -23,37 +23,51 @@ function IconMata({ terlihat }: { terlihat: boolean }) {
   );
 }
 
-export default function RegisterPage() {
+export default function LupaPasswordPage() {
   const router = useRouter();
-  const [nama, setNama] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [passwordBaru, setPasswordBaru] = useState('');
+  const [konfirmasi, setKonfirmasi] = useState('');
   const [tampilPassword, setTampilPassword] = useState(false);
-  const [telepon, setTelepon] = useState('');
+  const [tampilKonfirmasi, setTampilKonfirmasi] = useState(false);
   const [pesanError, setPesanError] = useState('');
   const [pesanSukses, setPesanSukses] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function register() {
-    setLoading(true);
+  async function resetPassword() {
     setPesanError('');
     setPesanSukses('');
+
+    if (!email || !passwordBaru || !konfirmasi) {
+      setPesanError('Semua kolom wajib diisi');
+      return;
+    }
+    if (passwordBaru.length < 6) {
+      setPesanError('Password minimal 6 karakter');
+      return;
+    }
+    if (passwordBaru !== konfirmasi) {
+      setPesanError('Konfirmasi password tidak sama');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/auth/register', {
+      const response = await fetch('http://localhost:3000/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nama, email, password, telepon }),
+        body: JSON.stringify({ email, password_baru: passwordBaru }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setPesanSukses('Akun berhasil dibuat! Mengarahkan ke halaman login...');
+        setPesanSukses('Password berhasil diubah! Mengarahkan ke halaman login...');
         setTimeout(() => {
           router.push('/login');
         }, 1500);
       } else {
-        setPesanError(data.error || 'Registrasi gagal');
+        setPesanError(data.error || 'Gagal mengubah password');
       }
     } catch (err) {
       setPesanError('Gagal konek ke server');
@@ -71,23 +85,12 @@ export default function RegisterPage() {
             <span className="font-bold text-xl text-slate-900">StockVision</span>
           </Link>
 
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Jangan sampai barang hilang lagi.</h1>
-          <p className="text-slate-600 text-base mb-8">
-            Akun baru terdaftar sebagai <b className="text-slate-700">Manager</b>. Untuk akun Staf Gudang, gunakan aplikasi mobile.
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Lupa password?</h1>
+          <p className="text-slate-600 text-base mb-8">Masukkan email Manager dan buat password baru.</p>
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Nama Lengkap</label>
-              <input
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
-                placeholder="Nama kamu"
-                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Email Kerja</label>
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Email</label>
               <input
                 type="email"
                 value={email}
@@ -96,13 +99,14 @@ export default function RegisterPage() {
                 className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
               />
             </div>
+
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Buat Password</label>
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Password Baru</label>
               <div className="relative">
                 <input
                   type={tampilPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={passwordBaru}
+                  onChange={(e) => setPasswordBaru(e.target.value)}
                   placeholder="Minimal 6 karakter"
                   className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
                 />
@@ -116,14 +120,29 @@ export default function RegisterPage() {
                 </button>
               </div>
             </div>
+
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Nomor Telepon (Opsional)</label>
-              <input
-                value={telepon}
-                onChange={(e) => setTelepon(e.target.value)}
-                placeholder="08xx-xxxx-xxxx"
-                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
-              />
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Konfirmasi Password</label>
+              <div className="relative">
+                <input
+                  type={tampilKonfirmasi ? 'text' : 'password'}
+                  value={konfirmasi}
+                  onChange={(e) => setKonfirmasi(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !loading) resetPassword();
+                  }}
+                  placeholder="Ulangi password baru"
+                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+                />
+                <button
+                  type="button"
+                  onClick={() => setTampilKonfirmasi(!tampilKonfirmasi)}
+                  aria-label={tampilKonfirmasi ? 'Sembunyikan password' : 'Tampilkan password'}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#F2842F]"
+                >
+                  <IconMata terlihat={tampilKonfirmasi} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -139,17 +158,16 @@ export default function RegisterPage() {
           )}
 
           <button
-            onClick={register}
+            onClick={resetPassword}
             disabled={loading}
             className="w-full bg-[#F2842F] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50 shadow-sm"
           >
-            {loading ? 'Memproses...' : 'Buat Akun'}
+            {loading ? 'Memproses...' : 'Ubah Password'}
           </button>
 
           <p className="text-center text-base text-slate-600 mt-6">
-            Sudah punya akun?{' '}
             <Link href="/login" className="text-[#B9540A] font-semibold hover:text-[#7A3505]">
-              Masuk
+              ← Kembali ke login
             </Link>
           </p>
         </div>
@@ -159,13 +177,13 @@ export default function RegisterPage() {
       <div className="hidden lg:relative lg:block w-1/2 bg-[#FBF8F5] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/paket4.png"
+          src="/paket2.png"
           alt="Ilustrasi Gudang"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-x-0 bottom-0 p-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-center">
           <p className="text-white text-lg font-medium max-w-sm mx-auto drop-shadow">
-            Simple, fast, dan powerful buat tim gudang kamu
+            Tenang, akses ke gudang kamu bisa dipulihkan dalam hitungan detik
           </p>
         </div>
       </div>

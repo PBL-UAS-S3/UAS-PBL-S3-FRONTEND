@@ -16,6 +16,9 @@ type Transaksi = {
 
 const BASE_URL = 'http://localhost:3000';
 
+const SELECT_KELAS =
+  'bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30';
+
 export default function RiwayatPage() {
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,8 +46,8 @@ export default function RiwayatPage() {
   }
 
   function tipeBadge(tipe: 'in' | 'out') {
-    if (tipe === 'in') return <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">Masuk</span>;
-    return <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">Keluar</span>;
+    if (tipe === 'in') return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">Masuk</span>;
+    return <span className="bg-red-100 text-red-800 border border-red-300 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">Keluar</span>;
   }
 
   function Thumbnail({ gambar }: { gambar: string | null }) {
@@ -54,12 +57,12 @@ export default function RiwayatPage() {
         <img
           src={`${BASE_URL}${gambar}`}
           alt=""
-          className="w-9 h-9 rounded-lg object-cover border border-slate-200 cursor-zoom-in shrink-0"
+          className="w-11 h-11 rounded-xl object-cover border-2 border-slate-200 cursor-zoom-in shrink-0"
           onClick={() => setZoomUrl(`${BASE_URL}${gambar}`)}
         />
       );
     }
-    return <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300 text-sm shrink-0">📦</div>;
+    return <div className="w-11 h-11 rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0">📦</div>;
   }
 
   const daftarStaf = Array.from(new Set(transaksi.map((t) => t.nama_staf)));
@@ -75,8 +78,8 @@ export default function RiwayatPage() {
     <main className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8">
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Riwayat Transaksi</h1>
-          <p className="text-slate-500 text-sm md:text-base">50 transaksi stok masuk/keluar terbaru</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Riwayat Transaksi</h1>
+          <p className="text-slate-600 text-base">50 transaksi stok masuk/keluar terbaru</p>
         </div>
 
         <div className="flex flex-col md:flex-row gap-3 mb-4">
@@ -84,51 +87,51 @@ export default function RiwayatPage() {
             placeholder="Cari produk, SKU, atau catatan..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
           />
-          <select value={tipeFilter} onChange={(e) => setTipeFilter(e.target.value)} className="border border-slate-300 rounded-lg px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select value={tipeFilter} onChange={(e) => setTipeFilter(e.target.value)} className={SELECT_KELAS}>
             <option value="">Semua Tipe</option>
             <option value="in">Masuk</option>
             <option value="out">Keluar</option>
           </select>
-          <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="border border-slate-300 rounded-lg px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className={SELECT_KELAS}>
             <option value="">Semua Staf</option>
             {daftarStaf.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left" style={{ minWidth: 750 }}>
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
+            <table className="w-full text-left" style={{ minWidth: 800 }}>
+              <thead className="bg-[#FDE9D6] text-[#7A3505] text-sm uppercase tracking-wide border-b-2 border-[#F2842F]/40">
                 <tr>
-                  <th className="px-5 py-3 whitespace-nowrap">Waktu</th>
-                  <th className="px-5 py-3 whitespace-nowrap">Produk</th>
-                  <th className="px-5 py-3 whitespace-nowrap">Tipe</th>
-                  <th className="px-5 py-3 whitespace-nowrap">Jumlah</th>
-                  <th className="px-5 py-3 whitespace-nowrap">Staf</th>
-                  <th className="px-5 py-3 whitespace-nowrap">Catatan</th>
+                  <th className="px-5 py-3.5 font-bold whitespace-nowrap">Waktu</th>
+                  <th className="px-5 py-3.5 font-bold whitespace-nowrap">Produk</th>
+                  <th className="px-5 py-3.5 font-bold whitespace-nowrap">Tipe</th>
+                  <th className="px-5 py-3.5 font-bold whitespace-nowrap">Jumlah</th>
+                  <th className="px-5 py-3.5 font-bold whitespace-nowrap">Staf</th>
+                  <th className="px-5 py-3.5 font-bold whitespace-nowrap">Catatan</th>
                 </tr>
               </thead>
               <tbody>
-                {loading && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Memuat data...</td></tr>}
-                {!loading && transaksiTersaring.length === 0 && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Tidak ada transaksi yang cocok.</td></tr>}
+                {loading && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-600 text-base">Memuat data...</td></tr>}
+                {!loading && transaksiTersaring.length === 0 && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-600 text-base">Tidak ada transaksi yang cocok.</td></tr>}
                 {transaksiTersaring.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                    <td className="px-5 py-3 text-slate-500 text-sm whitespace-nowrap">{formatWaktu(t.created_at)}</td>
-                    <td className="px-5 py-3 whitespace-nowrap">
+                  <tr key={t.id} className="border-b border-slate-200 hover:bg-[#FFF8F2] transition">
+                    <td className="px-5 py-4 text-slate-700 text-base whitespace-nowrap">{formatWaktu(t.created_at)}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <Thumbnail gambar={t.gambar} />
                         <div>
-                          <div className="font-medium text-slate-900">{t.nama}</div>
-                          <div className="text-xs text-slate-400 font-mono">{t.sku}</div>
+                          <div className="font-semibold text-slate-900 text-base">{t.nama}</div>
+                          <div className="text-sm text-slate-500 font-mono">{t.sku}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3">{tipeBadge(t.tipe)}</td>
-                    <td className="px-5 py-3 font-semibold text-slate-900 whitespace-nowrap">{t.jumlah}</td>
-                    <td className="px-5 py-3 text-slate-600 whitespace-nowrap">{t.nama_staf}</td>
-                    <td className="px-5 py-3 text-slate-500 text-sm">{t.catatan || '-'}</td>
+                    <td className="px-5 py-4">{tipeBadge(t.tipe)}</td>
+                    <td className="px-5 py-4 font-bold text-slate-900 text-base whitespace-nowrap">{t.jumlah}</td>
+                    <td className="px-5 py-4 text-slate-800 text-base whitespace-nowrap">{t.nama_staf}</td>
+                    <td className="px-5 py-4 text-slate-700 text-base">{t.catatan || '-'}</td>
                   </tr>
                 ))}
               </tbody>

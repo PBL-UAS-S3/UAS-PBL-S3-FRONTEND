@@ -1,6 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import {
+  Plus,
+  QrCode,
+  Pencil,
+  Trash2,
+  Package,
+  Upload,
+  Download,
+  X,
+  Search,
+} from 'lucide-react';
 
 type Product = {
   id: number;
@@ -36,6 +47,9 @@ const FORM_KOSONG: FormState = {
   nama: '', kategori: '', satuan: '', harga: '', gambar: '', stok_saat_ini: '', stok_minimum: '',
 };
 
+const INPUT_KELAS =
+  'w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30';
+
 export default function MasterDataPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -45,6 +59,7 @@ export default function MasterDataPage() {
   const [pesan, setPesan] = useState('');
   const [uploading, setUploading] = useState(false);
   const [zoomUrl, setZoomUrl] = useState<string | null>(null);
+  const [barcodeProduct, setBarcodeProduct] = useState<Product | null>(null);
 
   const [searchText, setSearchText] = useState('');
   const [kategoriFilter, setKategoriFilter] = useState('');
@@ -53,9 +68,13 @@ export default function MasterDataPage() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   async function fetchProducts() {
-    const res = await fetch(`${BASE_URL}/products`);
-    const data = await res.json();
-    setProducts(data);
+    try {
+      const res = await fetch(`${BASE_URL}/products`);
+      const data = await res.json();
+      setProducts(data);
+    } catch (error) {
+      console.error('Gagal mengambil data produk:', error);
+    }
   }
 
   useEffect(() => {
@@ -163,21 +182,49 @@ export default function MasterDataPage() {
     fetchProducts();
   }
 
-  function cetakBarcode(sku: string) {
-    const urlQr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(sku)}`;
-    const jendela = window.open('', '_blank', 'width=400,height=550');
-    if (!jendela) return;
-    jendela.document.write(`
-      <html>
-        <head><title>Barcode ${sku}</title></head>
-        <body style="text-align:center; font-family: sans-serif; padding: 24px;">
-          <img src="${urlQr}" style="width:250px;height:250px;" onload="window.print()" />
-          <p style="font-size:20px; font-weight:bold; margin-top:16px; letter-spacing:1px;">${sku}</p>
-          <p style="font-size:12px; color:#888;">Tempel label ini di kemasan produk</p>
-        </body>
-      </html>
-    `);
-    jendela.document.close();
+  async function downloadBarcode(sku: string, nama: string) {
+    const urlQr = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(sku)}`;
+
+    try {
+      const res = await fetch(urlQr);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 50, 30, 300, 300);
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.fillText(sku, canvas.width / 2, 365);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '15px sans-serif';
+        ctx.fillText(nama, canvas.width / 2, 395);
+
+        canvas.toBlob((finalBlob) => {
+          if (!finalBlob) return;
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(finalBlob);
+          link.download = `barcode-${sku}.png`;
+          link.click();
+        });
+
+        URL.revokeObjectURL(objectUrl);
+      };
+      img.src = objectUrl;
+    } catch (err) {
+      setPesan('Gagal membuat file barcode untuk diunduh');
+    }
   }
 
   function statusKey(p: Product): 'aman' | 'perlu' | 'menipis' {
@@ -188,16 +235,16 @@ export default function MasterDataPage() {
 
   function statusBadge(p: Product) {
     const key = statusKey(p);
-    if (key === 'menipis') return <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">Stok Menipis</span>;
-    if (key === 'perlu') return <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">Perlu Dipantau</span>;
-    return <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full">Aman</span>;
+    if (key === 'menipis') return <span className="bg-red-100 text-red-800 border border-red-300 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">Stok Menipis</span>;
+    if (key === 'perlu') return <span className="bg-amber-100 text-amber-900 border border-amber-300 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">Perlu Dipantau</span>;
+    return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">Aman</span>;
   }
 
   function formatRupiah(angka: number) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
   }
 
-  function Thumbnail({ gambar, ukuran = 44, bisaDiklik = false }: { gambar: string | null; ukuran?: number; bisaDiklik?: boolean }) {
+  function Thumbnail({ gambar, ukuran = 48, bisaDiklik = false }: { gambar: string | null; ukuran?: number; bisaDiklik?: boolean }) {
     if (gambar) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
@@ -205,13 +252,15 @@ export default function MasterDataPage() {
           src={`${BASE_URL}${gambar}`}
           alt=""
           style={{ width: ukuran, height: ukuran }}
-          className={`rounded-lg object-cover border border-slate-200 ${bisaDiklik ? 'cursor-zoom-in' : ''}`}
+          className={`rounded-xl object-cover border-2 border-slate-200 shrink-0 ${bisaDiklik ? 'cursor-zoom-in' : ''}`}
           onClick={bisaDiklik ? () => setZoomUrl(`${BASE_URL}${gambar}`) : undefined}
         />
       );
     }
     return (
-      <div style={{ width: ukuran, height: ukuran }} className="rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300 shrink-0">📦</div>
+      <div style={{ width: ukuran, height: ukuran }} className="rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0">
+        <Package className="w-6 h-6" />
+      </div>
     );
   }
 
@@ -232,26 +281,30 @@ export default function MasterDataPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Master Data Inventory</h1>
-            <p className="text-slate-500 text-sm md:text-base">Kelola data produk dan pantau status stok gudang</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Master Data Inventory</h1>
+            <p className="text-slate-600 text-base">Kelola data produk dan pantau status stok gudang</p>
           </div>
-          <button onClick={bukaModalTambah} className="bg-blue-600 text-white font-medium px-5 py-2.5 rounded-lg hover:bg-blue-700 transition w-fit">
-            + Tambah Produk
+          <button onClick={bukaModalTambah} className="flex items-center gap-2 bg-[#F2842F] text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-[#DD6F1B] transition shadow-sm w-fit">
+            <Plus className="w-5 h-5" />
+            <span>Tambah Produk</span>
           </button>
         </div>
 
         <div className="flex flex-col md:flex-row gap-3 mb-4">
-          <input
-            placeholder="Cari nama produk atau SKU..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select value={kategoriFilter} onChange={(e) => setKategoriFilter(e.target.value)} className="border border-slate-300 rounded-lg px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div className="relative flex-1">
+            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              placeholder="Cari nama produk atau SKU..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full bg-white border-2 border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+            />
+          </div>
+          <select value={kategoriFilter} onChange={(e) => setKategoriFilter(e.target.value)} className="bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30">
             <option value="">Semua Kategori</option>
             {daftarKategori.map((k) => <option key={k} value={k}>{k}</option>)}
           </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-slate-300 rounded-lg px-4 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30">
             <option value="">Semua Status</option>
             <option value="aman">Aman</option>
             <option value="perlu">Perlu Dipantau</option>
@@ -259,46 +312,54 @@ export default function MasterDataPage() {
           </select>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left" style={{ minWidth: 1000 }}>
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
+            <table className="w-full text-left" style={{ minWidth: 1050 }}>
+              <thead className="bg-[#FDE9D6] text-[#7A3505] text-sm uppercase tracking-wide border-b-2 border-[#F2842F]/40">
                 <tr>
-                  <th className="px-5 py-3">Produk</th>
-                  <th className="px-5 py-3">Kategori</th>
-                  <th className="px-5 py-3">Satuan</th>
-                  <th className="px-5 py-3">Harga</th>
-                  <th className="px-5 py-3">Stok</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Aksi</th>
+                  <th className="px-5 py-3.5 font-bold">Produk</th>
+                  <th className="px-5 py-3.5 font-bold">Kategori</th>
+                  <th className="px-5 py-3.5 font-bold">Satuan</th>
+                  <th className="px-5 py-3.5 font-bold">Harga</th>
+                  <th className="px-5 py-3.5 font-bold">Stok</th>
+                  <th className="px-5 py-3.5 font-bold">Status</th>
+                  <th className="px-5 py-3.5 font-bold">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {produkTersaring.map((p) => (
-                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition">
-                    <td className="px-5 py-3">
+                  <tr key={p.id} className="border-b border-slate-200 hover:bg-[#FFF8F2] transition">
+                    <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <Thumbnail gambar={p.gambar} bisaDiklik />
                         <div>
-                          <div className="font-medium text-slate-900">{p.nama}</div>
-                          <div className="text-xs text-slate-400 font-mono">{p.sku}</div>
+                          <div className="font-semibold text-slate-900 text-base">{p.nama}</div>
+                          <div className="text-sm text-slate-500 font-mono">{p.sku}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-slate-600">{p.kategori || '-'}</td>
-                    <td className="px-5 py-3 text-slate-600">{p.satuan || '-'}</td>
-                    <td className="px-5 py-3 text-slate-600 whitespace-nowrap">{formatRupiah(p.harga || 0)}</td>
-                    <td className="px-5 py-3 font-semibold text-slate-900">{p.stok_saat_ini}</td>
-                    <td className="px-5 py-3">{statusBadge(p)}</td>
-                    <td className="px-5 py-3 flex gap-3 whitespace-nowrap">
-                      <button onClick={() => bukaModalEdit(p)} className="text-blue-600 hover:text-blue-800 font-medium text-sm">Edit</button>
-                      <button onClick={() => cetakBarcode(p.sku)} className="text-slate-600 hover:text-slate-900 font-medium text-sm">🏷️ Barcode</button>
-                      <button onClick={() => hapusProduk(p.id)} className="text-red-500 hover:text-red-700 font-medium text-sm">Hapus</button>
+                    <td className="px-5 py-4 text-slate-800 text-base">{p.kategori || '-'}</td>
+                    <td className="px-5 py-4 text-slate-800 text-base">{p.satuan || '-'}</td>
+                    <td className="px-5 py-4 text-slate-800 text-base whitespace-nowrap">{formatRupiah(p.harga || 0)}</td>
+                    <td className="px-5 py-4 font-bold text-slate-900 text-base">{p.stok_saat_ini}</td>
+                    <td className="px-5 py-4">{statusBadge(p)}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex gap-2 whitespace-nowrap">
+                        <button onClick={() => bukaModalEdit(p)} className="flex items-center gap-1.5 border-2 border-[#F2842F] text-[#B9540A] hover:bg-[#FEF1E6] font-semibold text-sm px-3 py-1.5 rounded-lg transition">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setBarcodeProduct(p)} className="flex items-center gap-1.5 border-2 border-slate-300 text-slate-800 hover:bg-slate-100 font-semibold text-sm px-3 py-1.5 rounded-lg transition">
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => hapusProduk(p.id)} className="flex items-center gap-1.5 border-2 border-red-300 text-red-700 hover:bg-red-50 font-semibold text-sm px-3 py-1.5 rounded-lg transition">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
                 {produkTersaring.length === 0 && (
-                  <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-400">Tidak ada produk yang cocok dengan pencarian/filter.</td></tr>
+                  <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-600 text-base">Tidak ada produk yang cocok dengan pencarian/filter.</td></tr>
                 )}
               </tbody>
             </table>
@@ -306,22 +367,26 @@ export default function MasterDataPage() {
         </div>
       </div>
 
+      {/* Modal Tambah/Edit */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-lg font-semibold text-slate-900">{editingId ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">✕</button>
+            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-slate-100">
+              <h2 className="text-xl font-bold text-slate-900">{editingId ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
+              <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-slate-800 p-1 rounded-lg transition">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <div className="p-6">
               <div className="mb-5">
-                <label className="text-xs font-medium text-slate-500 mb-2 block">Foto Produk</label>
+                <label className="text-sm font-semibold text-slate-700 mb-2 block">Foto Produk</label>
                 <div className="flex items-center gap-4">
-                  <Thumbnail gambar={form.gambar} ukuran={72} />
+                  <Thumbnail gambar={form.gambar} ukuran={80} />
                   <div>
-                    <label className="inline-block bg-slate-100 text-slate-700 text-sm font-medium px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-200 transition">
-                      {uploading ? 'Mengunggah...' : 'Pilih Foto'}
+                    <label className="inline-flex items-center gap-2 border-2 border-[#F2842F] text-[#B9540A] text-base font-semibold px-4 py-2 rounded-xl cursor-pointer hover:bg-[#FEF1E6] transition">
+                      <Upload className="w-5 h-5" />
+                      <span>{uploading ? 'Mengunggah...' : 'Pilih Foto'}</span>
                       <input
                         type="file"
                         accept="image/png, image/jpeg, image/webp"
@@ -333,37 +398,37 @@ export default function MasterDataPage() {
                         }}
                       />
                     </label>
-                    <p className="text-xs text-slate-400 mt-1">JPG, PNG, atau WEBP, maks 2MB</p>
+                    <p className="text-sm text-slate-500 mt-1">JPG, PNG, atau WEBP, maks 2MB</p>
                   </div>
                 </div>
               </div>
 
               <div className="mb-4">
-                <label className="text-xs font-medium text-slate-500 mb-1 block">Kode SKU</label>
-                <div className="w-full border border-dashed border-slate-300 rounded-lg px-3 py-2 text-slate-500 bg-slate-50 text-sm">
+                <label className="text-sm font-semibold text-slate-700 mb-1 block">Kode SKU</label>
+                <div className="w-full border-2 border-dashed border-slate-300 rounded-xl px-4 py-2.5 text-slate-600 bg-slate-50 text-base">
                   {editingId ? editingSku : 'Akan dibuat otomatis oleh sistem setelah disimpan'}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Nama Produk</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Nama Produk</label>
                   <input
                     placeholder="Contoh: Kabel HDMI"
                     value={form.nama}
                     onChange={(e) => setForm({ ...form, nama: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={INPUT_KELAS}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Kategori (pilih atau ketik baru)</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Kategori (pilih atau ketik baru)</label>
                   <input
                     list="daftar-kategori-input"
                     placeholder="Contoh: Aksesoris"
                     value={form.kategori}
                     onChange={(e) => setForm({ ...form, kategori: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={INPUT_KELAS}
                   />
                   <datalist id="daftar-kategori-input">
                     {daftarKategori.map((k) => <option key={k} value={k} />)}
@@ -371,13 +436,13 @@ export default function MasterDataPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Satuan (pilih atau ketik baru)</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Satuan (pilih atau ketik baru)</label>
                   <input
                     list="daftar-satuan-input"
                     placeholder="Contoh: Pcs, Kg, Dus"
                     value={form.satuan}
                     onChange={(e) => setForm({ ...form, satuan: e.target.value })}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={INPUT_KELAS}
                   />
                   <datalist id="daftar-satuan-input">
                     {daftarSatuanGabungan.map((s) => <option key={s} value={s} />)}
@@ -385,45 +450,76 @@ export default function MasterDataPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Harga per Unit (Rp)</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Harga per Unit (Rp)</label>
                   <input
                     type="text" inputMode="numeric"
                     placeholder="0"
                     value={formatRibuan(form.harga)}
                     onChange={(e) => handleAngkaChange('harga', e.target.value)}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={INPUT_KELAS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Stok Saat Ini</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Stok Saat Ini</label>
                   <input
                     type="text" inputMode="numeric" pattern="[0-9]*"
                     placeholder="0"
                     value={form.stok_saat_ini}
                     onChange={(e) => handleAngkaChange('stok_saat_ini', e.target.value)}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={INPUT_KELAS}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1 block">Stok Minimum (batas peringatan)</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Stok Minimum (batas peringatan)</label>
                   <input
                     type="text" inputMode="numeric" pattern="[0-9]*"
                     placeholder="0"
                     value={form.stok_minimum}
                     onChange={(e) => handleAngkaChange('stok_minimum', e.target.value)}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={INPUT_KELAS}
                   />
                 </div>
               </div>
 
-              {pesan && <p className="text-red-600 mb-3 text-sm font-medium">{pesan}</p>}
+              {pesan && <p className="text-red-700 mb-3 text-base font-semibold">{pesan}</p>}
 
               <div className="flex gap-3">
-                <button onClick={simpanProduk} disabled={uploading} className="bg-blue-600 text-white font-medium px-5 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+                <button onClick={simpanProduk} disabled={uploading} className="bg-[#F2842F] text-white text-base font-semibold px-6 py-2.5 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50">
                   {editingId ? 'Update Produk' : 'Tambah Produk'}
                 </button>
-                <button onClick={() => setShowModal(false)} className="bg-slate-100 text-slate-700 px-5 py-2 rounded-lg hover:bg-slate-200 transition">Batal</button>
+                <button onClick={() => setShowModal(false)} className="border-2 border-slate-300 text-slate-800 text-base font-semibold px-6 py-2.5 rounded-xl hover:bg-slate-100 transition">Batal</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Barcode */}
+      {barcodeProduct && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-slate-100">
+              <h2 className="text-xl font-bold text-slate-900">Barcode Produk</h2>
+              <button onClick={() => setBarcodeProduct(null)} className="text-slate-500 hover:text-slate-800 p-1 rounded-lg transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col items-center text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(barcodeProduct.sku)}`}
+                alt="QR Code"
+                className="w-56 h-56 border-2 border-slate-200 rounded-xl mb-4"
+              />
+              <p className="text-2xl font-bold text-slate-900 tracking-wide">{barcodeProduct.sku}</p>
+              <p className="text-base text-slate-600 mb-6">{barcodeProduct.nama}</p>
+              <button
+                onClick={() => downloadBarcode(barcodeProduct.sku, barcodeProduct.nama)}
+                className="w-full flex items-center justify-center gap-2 bg-[#F2842F] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#DD6F1B] transition"
+              >
+                <Download className="w-5 h-5" />
+                <span>Download QR</span>
+              </button>
             </div>
           </div>
         </div>
@@ -438,7 +534,9 @@ function ModalZoomGambar({ url, onClose }: { url: string; onClose: () => void })
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[60]" onClick={onClose}>
       <div className="relative max-w-lg w-full">
-        <button onClick={onClose} className="absolute -top-10 right-0 text-white text-2xl leading-none">✕</button>
+        <button onClick={onClose} className="absolute -top-10 right-0 text-white p-1 hover:text-slate-300 transition">
+          <X className="w-6 h-6" />
+        </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={url} alt="" className="w-full rounded-xl" onClick={(e) => e.stopPropagation()} />
       </div>

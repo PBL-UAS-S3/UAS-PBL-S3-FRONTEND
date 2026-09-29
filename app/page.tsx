@@ -1,140 +1,201 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 
-function IlustrasiGudang() {
+function IlustrasiPaket({ ukuran = 'lg' }: { ukuran?: 'lg' | 'md' }) {
+  const lebar = ukuran === 'lg' ? 'max-w-sm' : 'max-w-xs';
   return (
-    <svg viewBox="0 0 400 300" className="w-full h-auto max-w-xs">
-      <rect x="40" y="220" width="320" height="8" rx="4" fill="#CBD5E1" />
-      <rect x="80" y="140" width="90" height="80" rx="6" fill="#3B82F6" />
-      <rect x="80" y="140" width="90" height="20" rx="6" fill="#2563EB" />
-      <line x1="125" y1="140" x2="125" y2="220" stroke="#1D4ED8" strokeWidth="2" />
-      <rect x="190" y="100" width="110" height="120" rx="6" fill="#FBBF24" />
-      <rect x="190" y="100" width="110" height="24" rx="6" fill="#F59E0B" />
-      <line x1="245" y1="100" x2="245" y2="220" stroke="#D97706" strokeWidth="2" />
-      <rect x="290" y="160" width="60" height="60" rx="6" fill="#34D399" />
-      <rect x="290" y="160" width="60" height="16" rx="6" fill="#10B981" />
-      <rect x="150" y="40" width="70" height="90" rx="8" fill="white" stroke="#CBD5E1" strokeWidth="2" />
-      <line x1="165" y1="60" x2="205" y2="60" stroke="#94A3B8" strokeWidth="4" strokeLinecap="round" />
-      <line x1="165" y1="75" x2="205" y2="75" stroke="#94A3B8" strokeWidth="4" strokeLinecap="round" />
-      <line x1="165" y1="90" x2="190" y2="90" stroke="#94A3B8" strokeWidth="4" strokeLinecap="round" />
-      <circle cx="200" cy="105" r="14" fill="#22C55E" />
-      <path d="M193 105 l5 5 l10 -10" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src="/paket6.png"
+      alt="Ilustrasi Paket Gudang"
+      className={`w-full h-auto ${lebar} object-contain`}
+    />
   );
 }
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [pesanError, setPesanError] = useState('');
-  const [loading, setLoading] = useState(false);
+const fiturList = [
+  { ikon: '📷', judul: 'Scan Barcode/QR', desk: 'Staf gudang catat barang masuk & keluar cukup dengan scan dari HP.' },
+  { ikon: '✨', judul: 'AI Insight', desk: 'Gemini menganalisis histori transaksi dan memberi rekomendasi restock.' },
+  { ikon: '🛒', judul: 'Purchase Order', desk: 'Buat PO langsung dari rekomendasi AI, satu klik untuk approve.' },
+  { ikon: '📊', judul: 'Dashboard Real-time', desk: 'Pantau stok, nilai inventori, dan tren transaksi dalam satu layar.' },
+];
 
-  async function login() {
-    setLoading(true);
-    setPesanError('');
-    try {
-      const response = await fetch('http://localhost:3000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setPesanError(data.error || 'Login gagal');
-        setLoading(false);
-        return;
-      }
-
-      if (data.role !== 'manager') {
-        setPesanError(
-          'Web dashboard ini khusus untuk akun Manager. Akun kamu terdaftar sebagai Staf — gunakan aplikasi mobile untuk mencatat transaksi gudang.'
-        );
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role);
-      localStorage.setItem('nama', data.nama);
-      window.location.href = '/dashboard';
-    } catch (err) {
-      setPesanError('Gagal konek ke server');
-      setLoading(false);
-    }
-  }
-
+function MockupDashboard() {
   return (
-    <main className="min-h-screen flex bg-white">
-      {/* Kiri: Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-sm">
-          <div className="flex items-center gap-2 mb-8">
-            <span className="text-3xl">📦</span>
-            <span className="font-bold text-xl text-slate-900">StockVision</span>
+    <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 overflow-hidden max-w-3xl mx-auto">
+      {/* Bar atas ala browser */}
+      <div className="bg-slate-100 border-b-2 border-slate-200 px-4 py-2.5 flex items-center gap-2">
+        <span className="w-3 h-3 rounded-full bg-red-400" />
+        <span className="w-3 h-3 rounded-full bg-amber-400" />
+        <span className="w-3 h-3 rounded-full bg-emerald-400" />
+        <span className="ml-3 text-xs text-slate-400 bg-white rounded px-3 py-1 border border-slate-200">
+          stockvision.app/dashboard
+        </span>
+      </div>
+      <div className="flex">
+        {/* Sidebar mini */}
+        <div className="w-16 md:w-40 bg-white border-r-2 border-slate-100 py-4 px-2 md:px-3 space-y-2 shrink-0">
+          <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-[#F2842F] text-white text-xs font-semibold">
+            <span>🏠</span><span className="hidden md:inline">Dashboard</span>
           </div>
-
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome Back!</h1>
-          <p className="text-slate-500 mb-8">Masuk ke akun Anda untuk kelola gudang.</p>
-
-          <div className="space-y-4 mb-6">
-            <div>
-              <label className="text-xs font-medium text-slate-500 mb-1 block">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@perusahaan.com"
-                className="w-full bg-white border-b border-slate-300 py-2 focus:outline-none focus:border-blue-500 text-slate-900"
-              />
+          <div className="flex items-center gap-2 px-2 py-2 rounded-lg text-slate-400 text-xs font-medium">
+            <span>📦</span><span className="hidden md:inline">Master Data</span>
+          </div>
+          <div className="flex items-center gap-2 px-2 py-2 rounded-lg text-slate-400 text-xs font-medium">
+            <span>✨</span><span className="hidden md:inline">AI Insight</span>
+          </div>
+          <div className="flex items-center gap-2 px-2 py-2 rounded-lg text-slate-400 text-xs font-medium">
+            <span>🛒</span><span className="hidden md:inline">Purchase Order</span>
+          </div>
+        </div>
+        {/* Konten mini */}
+        <div className="flex-1 p-4 md:p-5 bg-[#FBF8F5]">
+          <div className="grid grid-cols-4 gap-2 md:gap-3 mb-4">
+            <div className="bg-white border-2 border-slate-200 rounded-xl p-2 md:p-3">
+              <p className="text-[9px] md:text-xs text-slate-400">Produk</p>
+              <p className="text-sm md:text-lg font-bold text-slate-900">128</p>
             </div>
-            <div>
-              <label className="text-xs font-medium text-slate-500 mb-1 block">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-white border-b border-slate-300 py-2 focus:outline-none focus:border-blue-500 text-slate-900"
-              />
+            <div className="bg-white border-2 border-slate-200 rounded-xl p-2 md:p-3">
+              <p className="text-[9px] md:text-xs text-slate-400">Menipis</p>
+              <p className="text-sm md:text-lg font-bold text-red-600">6</p>
+            </div>
+            <div className="bg-white border-2 border-slate-200 rounded-xl p-2 md:p-3">
+              <p className="text-[9px] md:text-xs text-slate-400">Transaksi</p>
+              <p className="text-sm md:text-lg font-bold text-slate-900">24</p>
+            </div>
+            <div className="bg-[#F2842F] rounded-xl p-2 md:p-3">
+              <p className="text-[9px] md:text-xs text-white/80">Nilai Stok</p>
+              <p className="text-sm md:text-lg font-bold text-white">Rp82jt</p>
             </div>
           </div>
+          <div className="bg-white border-2 border-slate-200 rounded-xl p-3 space-y-2">
+            <div className="h-2 md:h-2.5 bg-[#FDE9D6] rounded-full w-full" />
+            <div className="h-2 md:h-2.5 bg-slate-100 rounded-full w-5/6" />
+            <div className="h-2 md:h-2.5 bg-slate-100 rounded-full w-4/6" />
+            <div className="h-2 md:h-2.5 bg-slate-100 rounded-full w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          {pesanError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
-              {pesanError}
-            </div>
-          )}
-
-          <button
-            onClick={login}
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Memproses...' : 'Continue'}
-          </button>
-
-          <p className="text-center text-sm text-slate-500 mt-6">
-            Belum punya akun?{' '}
-            <Link href="/register" className="text-blue-600 font-medium hover:text-blue-800">
-              Buat akun
+export default function HomePage() {
+  return (
+    <main className="min-h-screen bg-[#FBF8F5]">
+      {/* Navbar */}
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-2 border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-[#F2842F] flex items-center justify-center text-lg shrink-0">📦</div>
+            <span className="font-bold text-lg text-slate-900">StockVision</span>
+          </div>
+          <div className="flex items-center gap-2 md:gap-3">
+            <Link
+              href="/login"
+              className="px-4 py-2 rounded-xl text-sm md:text-base font-semibold text-slate-800 hover:bg-slate-100 transition"
+            >
+              Masuk
             </Link>
-          </p>
+            <Link
+              href="/register"
+              className="px-4 py-2 rounded-xl bg-[#F2842F] text-white text-sm md:text-base font-semibold hover:bg-[#DD6F1B] transition shadow-sm"
+            >
+              Daftar
+            </Link>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Kanan: Panel abu-abu polos + ilustrasi (sesuai wireframe) */}
-      <div className="hidden lg:flex w-1/2 bg-gray-100 items-center justify-center">
-        <div className="flex flex-col items-center text-center px-12">
-          <IlustrasiGudang />
-          <p className="text-slate-500 text-sm mt-6 max-w-xs">
-            Kelola stok gudang lebih cerdas dengan bantuan AI
+      {/* Hero */}
+      <section className="max-w-6xl mx-auto px-4 md:px-8 pt-12 md:pt-20 pb-10 grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <span className="inline-block bg-[#FEF1E6] text-[#B9540A] text-xs md:text-sm font-bold px-3 py-1.5 rounded-full mb-4">
+            Powered by AI (Gemini)
+          </span>
+          <h1 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight mb-4">
+            Kelola gudang lebih cerdas, <span className="text-[#F2842F]">tanpa ribet.</span>
+          </h1>
+          <p className="text-slate-600 text-base md:text-lg mb-8">
+            StockVision membantu manager memantau stok dan staf mencatat barang
+            masuk/keluar lewat scan barcode — dilengkapi rekomendasi restock dari AI.
           </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/register"
+              className="px-6 py-3 rounded-xl bg-[#F2842F] text-white text-base font-semibold hover:bg-[#DD6F1B] transition shadow-sm"
+            >
+              Mulai Sekarang →
+            </Link>
+            <Link
+              href="/login"
+              className="px-6 py-3 rounded-xl border-2 border-slate-300 text-slate-800 text-base font-semibold hover:bg-white transition"
+            >
+              Sudah punya akun? Masuk
+            </Link>
+          </div>
         </div>
-      </div>
+        <div className="flex justify-center">
+          <IlustrasiPaket />
+        </div>
+      </section>
+
+      {/* Preview aplikasi desktop */}
+      <section className="max-w-6xl mx-auto px-4 md:px-8 pb-16">
+        <p className="text-center text-sm font-bold text-[#B9540A] uppercase tracking-wide mb-2">
+          Tampilan Aplikasi
+        </p>
+        <h2 className="text-center text-2xl md:text-3xl font-bold text-slate-900 mb-8">
+          Satu dashboard untuk seluruh gudang
+        </h2>
+        <MockupDashboard />
+      </section>
+
+      {/* Fitur */}
+      <section className="bg-white border-y-2 border-slate-100 py-16">
+        <div className="max-w-6xl mx-auto px-4 md:px-8">
+          <h2 className="text-center text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+            Semua yang gudang kamu butuhkan
+          </h2>
+          <p className="text-center text-slate-600 text-base mb-10">
+            Dari pencatatan harian sampai keputusan restock
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+            {fiturList.map((f) => (
+              <div key={f.judul} className="bg-[#FBF8F5] border-2 border-slate-200 rounded-2xl p-5">
+                <div className="w-11 h-11 rounded-xl bg-[#FEF1E6] flex items-center justify-center text-xl mb-3">
+                  {f.ikon}
+                </div>
+                <h3 className="font-bold text-slate-900 text-base mb-1">{f.judul}</h3>
+                <p className="text-slate-600 text-sm">{f.desk}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA bawah */}
+      <section className="max-w-4xl mx-auto px-4 md:px-8 py-16 text-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+          Siap merapikan stok gudangmu?
+        </h2>
+        <p className="text-slate-600 text-base mb-6">
+          Daftar sebagai Manager dan mulai kelola inventori hari ini juga.
+        </p>
+        <Link
+          href="/register"
+          className="inline-block px-8 py-3.5 rounded-xl bg-[#F2842F] text-white text-base font-semibold hover:bg-[#DD6F1B] transition shadow-sm"
+        >
+          Buat Akun Gratis
+        </Link>
+      </section>
+
+      <footer className="border-t-2 border-slate-100 py-6">
+        <p className="text-center text-sm text-slate-500">
+          © 2026 StockVision — Smart Warehouse & Inventory System
+        </p>
+      </footer>
     </main>
   );
 }

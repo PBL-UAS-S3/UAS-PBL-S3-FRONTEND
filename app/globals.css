@@ -1,4 +1,8 @@
 @import "tailwindcss";
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
 
 :root {
   --background: #ffffff;

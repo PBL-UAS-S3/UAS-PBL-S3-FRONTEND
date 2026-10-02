@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  MapPin, Globe, Moon, Sun, User, LifeBuoy, MessageSquare, FileText,
+  MapPin, User, LifeBuoy, MessageSquare, FileText,
   Save, ChevronRight, Search, Loader2, Phone, Building2, StickyNote,
 } from 'lucide-react';
 
@@ -80,10 +80,6 @@ export default function PengaturanPage() {
   const [queryCari, setQueryCari] = useState('');
   const [hasilCari, setHasilCari] = useState<HasilPencarian[]>([]);
   const [sedangCari, setSedangCari] = useState(false);
-
-  // ---- State preferensi tampilan ----
-  const [bahasa, setBahasa] = useState('id');
-  const [tema, setTema] = useState<'terang' | 'gelap'>('terang');
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -185,13 +181,6 @@ export default function PengaturanPage() {
     };
   }, [loadingAwal]);
 
-  useEffect(() => {
-    const bahasaTersimpan = localStorage.getItem('pref_bahasa');
-    const temaTersimpan = localStorage.getItem('pref_tema');
-    if (bahasaTersimpan) setBahasa(bahasaTersimpan);
-    if (temaTersimpan === 'gelap') setTema('gelap');
-  }, []);
-
   function handleQueryChange(nilai: string) {
     setQueryCari(nilai);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -280,22 +269,12 @@ export default function PengaturanPage() {
     setSavingAlamat(false);
   }
 
-  function gantiBahasa(nilai: string) {
-    setBahasa(nilai);
-    localStorage.setItem('pref_bahasa', nilai);
-  }
-
-  function gantiTema(nilai: 'terang' | 'gelap') {
-    setTema(nilai);
-    localStorage.setItem('pref_tema', nilai);
-  }
-
   return (
     <main className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Pengaturan</h1>
-          <p className="text-slate-600 text-base">Kelola alamat gudang, tampilan, dan bantuan</p>
+          <p className="text-slate-600 text-base">Kelola alamat gudang dan bantuan</p>
         </div>
 
         {/* ===================== Alamat Gudang ===================== */}
@@ -439,65 +418,6 @@ export default function PengaturanPage() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* ===================== Preferensi Tampilan ===================== */}
-        <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-1">Preferensi Tampilan</h2>
-          <p className="text-sm text-slate-500 mb-5">
-            Tersimpan di perangkat ini. Saat ini baru memengaruhi pratinjau di halaman ini.
-          </p>
-
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-6 items-start">
-            <div>
-              <label className={LABEL_KELAS}>
-                <Globe size={14} /> Bahasa
-              </label>
-              <div className="flex gap-2">
-                {(['id', 'en'] as const).map((kode) => (
-                  <button
-                    key={kode}
-                    onClick={() => gantiBahasa(kode)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition ${
-                      bahasa === kode ? 'bg-[#F2842F] border-[#F2842F] text-white' : 'border-slate-300 text-slate-700 hover:bg-[#FEF1E6]'
-                    }`}
-                  >
-                    {kode === 'id' ? 'Indonesia' : 'English'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className={LABEL_KELAS}>
-                {tema === 'terang' ? <Sun size={14} /> : <Moon size={14} />} Tema
-              </label>
-              <div className="flex gap-2">
-                {(['terang', 'gelap'] as const).map((opsi) => (
-                  <button
-                    key={opsi}
-                    onClick={() => gantiTema(opsi)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition capitalize ${
-                      tema === opsi ? 'bg-[#F2842F] border-[#F2842F] text-white' : 'border-slate-300 text-slate-700 hover:bg-[#FEF1E6]'
-                    }`}
-                  >
-                    {opsi}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div
-              className={`lg:w-64 rounded-xl p-4 border-2 transition ${
-                tema === 'gelap' ? 'bg-slate-900 border-slate-700 text-white' : 'bg-[#FBF8F5] border-slate-200 text-slate-900'
-              }`}
-            >
-              <p className="text-sm font-medium">Pratinjau tema {tema}</p>
-              <p className={`text-xs mt-1 ${tema === 'gelap' ? 'text-slate-300' : 'text-slate-500'}`}>
-                Contoh kartu dengan tema yang kamu pilih
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* ===================== Tautan lain ===================== */}

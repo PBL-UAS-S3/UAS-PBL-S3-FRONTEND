@@ -11,6 +11,8 @@ import {
   Download,
   X,
   Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 type Product = {
@@ -26,6 +28,7 @@ type Product = {
 };
 
 const BASE_URL = 'http://localhost:3000';
+const ITEM_PER_HALAMAN = 10;
 
 const PRESET_SATUAN = [
   'Pcs', 'Lusin', 'Kodi', 'Gross', 'Rim', 'Pasang',
@@ -50,6 +53,60 @@ const FORM_KOSONG: FormState = {
 const INPUT_KELAS =
   'w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30';
 
+function Pagination({
+  halamanAktif,
+  totalHalaman,
+  onGanti,
+  totalData,
+}: {
+  halamanAktif: number;
+  totalHalaman: number;
+  onGanti: (halaman: number) => void;
+  totalData: number;
+}) {
+  if (totalHalaman <= 1) return null;
+
+  const awal = (halamanAktif - 1) * ITEM_PER_HALAMAN + 1;
+  const akhir = Math.min(halamanAktif * ITEM_PER_HALAMAN, totalData);
+
+  return (
+    <div className="px-5 py-3 border-t-2 border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p className="text-sm text-slate-600">
+        Menampilkan <b className="text-slate-800">{awal}–{akhir}</b> dari <b className="text-slate-800">{totalData}</b> data
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => onGanti(halamanAktif - 1)}
+          disabled={halamanAktif === 1}
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        {Array.from({ length: totalHalaman }, (_, i) => i + 1).map((p) => (
+          <button
+            key={p}
+            onClick={() => onGanti(p)}
+            className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
+              p === halamanAktif
+                ? 'bg-[#F2842F] text-white shadow-sm'
+                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F]'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+        <button
+          onClick={() => onGanti(halamanAktif + 1)}
+          disabled={halamanAktif === totalHalaman}
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function MasterDataPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -64,6 +121,7 @@ export default function MasterDataPage() {
   const [searchText, setSearchText] = useState('');
   const [kategoriFilter, setKategoriFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [halamanAktif, setHalamanAktif] = useState(1);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -80,6 +138,10 @@ export default function MasterDataPage() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    setHalamanAktif(1);
+  }, [searchText, kategoriFilter, statusFilter]);
 
   function bukaModalTambah() {
     setForm(FORM_KOSONG);
@@ -276,6 +338,12 @@ export default function MasterDataPage() {
     return cocokSearch && cocokKategori && cocokStatus;
   });
 
+  const totalHalaman = Math.max(1, Math.ceil(produkTersaring.length / ITEM_PER_HALAMAN));
+  const produkHalamanIni = produkTersaring.slice(
+    (halamanAktif - 1) * ITEM_PER_HALAMAN,
+    halamanAktif * ITEM_PER_HALAMAN
+  );
+
   return (
     <main className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -327,7 +395,7 @@ export default function MasterDataPage() {
                 </tr>
               </thead>
               <tbody>
-                {produkTersaring.map((p) => (
+                {produkHalamanIni.map((p) => (
                   <tr key={p.id} className="border-b border-slate-200 hover:bg-[#FFF8F2] transition">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
@@ -364,6 +432,12 @@ export default function MasterDataPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            halamanAktif={halamanAktif}
+            totalHalaman={totalHalaman}
+            onGanti={setHalamanAktif}
+            totalData={produkTersaring.length}
+          />
         </div>
       </div>
 

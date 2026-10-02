@@ -73,8 +73,14 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-sm">
           <Link href="/" className="flex items-center gap-2 mb-8 w-fit">
-            <div className="w-9 h-9 rounded-xl bg-[#F2842F] flex items-center justify-center text-lg">📦</div>
-            <span className="font-bold text-xl text-slate-900">StockVision</span>
+            <div className="w-9 h-9 rounded-xl bg-[#0000] flex items-center justify-center text-lg">
+               <img
+                src="/logo4.png"
+                alt="Stockin Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="font-bold text-xl text-slate-900">Stockin</span>
           </Link>
 
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Selamat Datang Kembali!</h1>

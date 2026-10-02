@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Package, History, Sparkles, ShoppingCart, LogOut, Menu, X, Box, User } from 'lucide-react';
+import { LayoutDashboard, Package, History, Sparkles, ShoppingCart, LogOut, Menu, X, User, Settings } from 'lucide-react';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
@@ -11,15 +11,20 @@ const menuItems = [
   { href: '/dashboard/riwayat', label: 'Riwayat Transaksi', Icon: History },
   { href: '/dashboard/insight', label: 'AI Insight', Icon: Sparkles },
   { href: '/dashboard/po', label: 'Purchase Order', Icon: ShoppingCart },
-  { href: '/dashboard/profil', label: 'Profil Saya', Icon: User },
+  { href: '/dashboard/profil', label: 'Profil', Icon: User },
+  { href: '/dashboard/pengaturan', label: 'Pengaturan', Icon: Settings },
 ];
 
 function Logo({ ukuran = 'md' }: { ukuran?: 'sm' | 'md' }) {
   const kotak = ukuran === 'sm' ? 'w-9 h-9' : 'w-11 h-11';
-  const iconSize = ukuran === 'sm' ? 18 : 22;
   return (
-    <div className={`${kotak} rounded-xl bg-[#F2842F] flex items-center justify-center shadow-sm shrink-0`}>
-      <Box size={iconSize} className="text-white" />
+    <div className={`${kotak} rounded-xl bg-[#0000] flex items-center justify-center shrink-0 p-1.5`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo4.png"
+        alt="Stockin Logo"
+        className="w-full h-full object-contain"
+      />
     </div>
   );
 }
@@ -73,7 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </button>
         <div className="flex items-center gap-2">
           <Logo ukuran="sm" />
-          <span className="font-bold text-slate-900 text-lg">StockVision</span>
+          <span className="font-bold text-slate-900 text-lg">Stockin</span>
         </div>
         <div className="w-6" />
       </div>
@@ -94,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3">
             <Logo />
             <div>
-              <span className="font-bold text-slate-900 text-xl leading-tight block">StockVision</span>
+              <span className="font-bold text-slate-900 text-xl leading-tight block">Stockin</span>
               <p className="text-xs text-slate-500">Smart Warehouse System</p>
             </div>
           </div>

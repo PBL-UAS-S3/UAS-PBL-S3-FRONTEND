@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Package, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 type Transaksi = {
   id: number;
@@ -15,9 +16,64 @@ type Transaksi = {
 };
 
 const BASE_URL = 'http://localhost:3000';
+const ITEM_PER_HALAMAN = 10;
 
 const SELECT_KELAS =
   'bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30';
+
+function Pagination({
+  halamanAktif,
+  totalHalaman,
+  onGanti,
+  totalData,
+}: {
+  halamanAktif: number;
+  totalHalaman: number;
+  onGanti: (halaman: number) => void;
+  totalData: number;
+}) {
+  if (totalHalaman <= 1) return null;
+
+  const awal = (halamanAktif - 1) * ITEM_PER_HALAMAN + 1;
+  const akhir = Math.min(halamanAktif * ITEM_PER_HALAMAN, totalData);
+
+  return (
+    <div className="px-5 py-3 border-t-2 border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p className="text-sm text-slate-600">
+        Menampilkan <b className="text-slate-800">{awal}–{akhir}</b> dari <b className="text-slate-800">{totalData}</b> data
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => onGanti(halamanAktif - 1)}
+          disabled={halamanAktif === 1}
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        {Array.from({ length: totalHalaman }, (_, i) => i + 1).map((p) => (
+          <button
+            key={p}
+            onClick={() => onGanti(p)}
+            className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
+              p === halamanAktif
+                ? 'bg-[#F2842F] text-white shadow-sm'
+                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F]'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+        <button
+          onClick={() => onGanti(halamanAktif + 1)}
+          disabled={halamanAktif === totalHalaman}
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function RiwayatPage() {
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
@@ -27,6 +83,7 @@ export default function RiwayatPage() {
   const [searchText, setSearchText] = useState('');
   const [tipeFilter, setTipeFilter] = useState('');
   const [staffFilter, setStaffFilter] = useState('');
+  const [halamanAktif, setHalamanAktif] = useState(1);
 
   async function fetchRiwayat() {
     setLoading(true);
@@ -39,6 +96,10 @@ export default function RiwayatPage() {
   useEffect(() => {
     fetchRiwayat();
   }, []);
+
+  useEffect(() => {
+    setHalamanAktif(1);
+  }, [searchText, tipeFilter, staffFilter]);
 
   function formatWaktu(iso: string) {
     const d = new Date(iso);
@@ -62,7 +123,7 @@ export default function RiwayatPage() {
         />
       );
     }
-    return <div className="w-11 h-11 rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0">📦</div>;
+    return <div className="w-11 h-11 rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0"><Package size={20} /></div>;
   }
 
   const daftarStaf = Array.from(new Set(transaksi.map((t) => t.nama_staf)));
@@ -73,6 +134,12 @@ export default function RiwayatPage() {
     const cocokStaf = staffFilter === '' || t.nama_staf === staffFilter;
     return cocokSearch && cocokTipe && cocokStaf;
   });
+
+  const totalHalaman = Math.max(1, Math.ceil(transaksiTersaring.length / ITEM_PER_HALAMAN));
+  const transaksiHalamanIni = transaksiTersaring.slice(
+    (halamanAktif - 1) * ITEM_PER_HALAMAN,
+    halamanAktif * ITEM_PER_HALAMAN
+  );
 
   return (
     <main className="p-4 md:p-8">
@@ -116,7 +183,7 @@ export default function RiwayatPage() {
               <tbody>
                 {loading && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-600 text-base">Memuat data...</td></tr>}
                 {!loading && transaksiTersaring.length === 0 && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-600 text-base">Tidak ada transaksi yang cocok.</td></tr>}
-                {transaksiTersaring.map((t) => (
+                {transaksiHalamanIni.map((t) => (
                   <tr key={t.id} className="border-b border-slate-200 hover:bg-[#FFF8F2] transition">
                     <td className="px-5 py-4 text-slate-700 text-base whitespace-nowrap">{formatWaktu(t.created_at)}</td>
                     <td className="px-5 py-4 whitespace-nowrap">
@@ -137,6 +204,12 @@ export default function RiwayatPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            halamanAktif={halamanAktif}
+            totalHalaman={totalHalaman}
+            onGanti={setHalamanAktif}
+            totalData={transaksiTersaring.length}
+          />
         </div>
       </div>
 
@@ -149,7 +222,9 @@ function ModalZoomGambar({ url, onClose }: { url: string; onClose: () => void })
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[60]" onClick={onClose}>
       <div className="relative max-w-lg w-full">
-        <button onClick={onClose} className="absolute -top-10 right-0 text-white text-2xl leading-none">✕</button>
+        <button onClick={onClose} className="absolute -top-10 right-0 text-white">
+          <X size={26} />
+        </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={url} alt="" className="w-full rounded-xl" onClick={(e) => e.stopPropagation()} />
       </div>

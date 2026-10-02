@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Sparkles, Package, History, CheckCircle2, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Insight = {
   id: number;
@@ -16,6 +17,61 @@ type Insight = {
 };
 
 const BASE_URL = "http://localhost:3000";
+const ITEM_PER_HALAMAN = 10;
+
+function Pagination({
+  halamanAktif,
+  totalHalaman,
+  onGanti,
+  totalData,
+}: {
+  halamanAktif: number;
+  totalHalaman: number;
+  onGanti: (halaman: number) => void;
+  totalData: number;
+}) {
+  if (totalHalaman <= 1) return null;
+
+  const awal = (halamanAktif - 1) * ITEM_PER_HALAMAN + 1;
+  const akhir = Math.min(halamanAktif * ITEM_PER_HALAMAN, totalData);
+
+  return (
+    <div className="md:col-span-2 bg-white border-2 border-slate-200 rounded-2xl shadow-sm px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p className="text-sm text-slate-600">
+        Menampilkan <b className="text-slate-800">{awal}–{akhir}</b> dari <b className="text-slate-800">{totalData}</b> data
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => onGanti(halamanAktif - 1)}
+          disabled={halamanAktif === 1}
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        {Array.from({ length: totalHalaman }, (_, i) => i + 1).map((p) => (
+          <button
+            key={p}
+            onClick={() => onGanti(p)}
+            className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
+              p === halamanAktif
+                ? 'bg-[#F2842F] text-white shadow-sm'
+                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F]'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+        <button
+          onClick={() => onGanti(halamanAktif + 1)}
+          disabled={halamanAktif === totalHalaman}
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function InsightPage() {
   const [insights, setInsights] = useState<Insight[]>([]);
@@ -26,6 +82,7 @@ export default function InsightPage() {
   const [customJumlah, setCustomJumlah] = useState<Record<string, string>>({});
   const [pesan, setPesan] = useState("");
   const [zoomUrl, setZoomUrl] = useState<string | null>(null);
+  const [halamanAktif, setHalamanAktif] = useState(1);
 
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -55,6 +112,10 @@ export default function InsightPage() {
   useEffect(() => {
     fetchInsights();
   }, []);
+
+  useEffect(() => {
+    setHalamanAktif(1);
+  }, [insights.length]);
 
   async function generateInsight() {
     setGenerating(true);
@@ -175,10 +236,16 @@ export default function InsightPage() {
     }
     return (
       <div className="w-12 h-12 rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0">
-        📦
+        <Package size={22} />
       </div>
     );
   }
+
+  const totalHalaman = Math.max(1, Math.ceil(insights.length / ITEM_PER_HALAMAN));
+  const insightHalamanIni = insights.slice(
+    (halamanAktif - 1) * ITEM_PER_HALAMAN,
+    halamanAktif * ITEM_PER_HALAMAN
+  );
 
   return (
     <main className="p-4 md:p-8">
@@ -195,9 +262,10 @@ export default function InsightPage() {
           <button
             onClick={generateInsight}
             disabled={generating}
-            className="bg-[#F2842F] text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-[#DD6F1B] transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed w-fit"
+            className="flex items-center gap-2 bg-[#F2842F] text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-[#DD6F1B] transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed w-fit"
           >
-            {generating ? "Menganalisis..." : "✨ Generate Insight Baru"}
+            <Sparkles size={18} />
+            {generating ? "Menganalisis..." : "Generate Insight Baru"}
           </button>
         </div>
 
@@ -219,12 +287,10 @@ export default function InsightPage() {
               untuk memulai.
             </div>
           )}
-          {insights.map((item) => (
+          {insightHalamanIni.map((item) => (
             <div
               key={item.id}
-              className={`bg-white border-2 rounded-2xl shadow-sm p-5 ${
-                item.is_terbaru === 1 ? "border-slate-200" : "border-slate-200 opacity-90"
-              }`}
+              className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm p-5"
             >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -241,8 +307,8 @@ export default function InsightPage() {
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   {restockBadge(item)}
                   {item.is_terbaru === 0 && (
-                    <span className="bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold px-2 py-0.5 rounded-full">
-                      Riwayat
+                    <span className="flex items-center gap-1 bg-slate-100 text-slate-700 border border-slate-300 text-xs font-semibold px-2 py-0.5 rounded-full">
+                      <History size={12} /> Riwayat
                     </span>
                   )}
                 </div>
@@ -261,8 +327,8 @@ export default function InsightPage() {
 
               {tampilkanTombolPO(item) &&
                 (poBerhasilSku === item.sku ? (
-                  <div className="text-emerald-700 text-base font-semibold">
-                    ✓ Purchase Order berhasil dibuat
+                  <div className="flex items-center gap-2 text-emerald-700 text-base font-semibold">
+                    <CheckCircle2 size={18} /> Purchase Order berhasil dibuat
                   </div>
                 ) : (
                   <div>
@@ -300,6 +366,15 @@ export default function InsightPage() {
                 ))}
             </div>
           ))}
+
+          {!loading && insights.length > 0 && (
+            <Pagination
+              halamanAktif={halamanAktif}
+              totalHalaman={totalHalaman}
+              onGanti={setHalamanAktif}
+              totalData={insights.length}
+            />
+          )}
         </div>
       </div>
 
@@ -312,7 +387,9 @@ function ModalZoomGambar({ url, onClose }: { url: string; onClose: () => void })
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[60]" onClick={onClose}>
       <div className="relative max-w-lg w-full">
-        <button onClick={onClose} className="absolute -top-10 right-0 text-white text-2xl leading-none">✕</button>
+        <button onClick={onClose} className="absolute -top-10 right-0 text-white">
+          <X size={26} />
+        </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={url} alt="" className="w-full rounded-xl" onClick={(e) => e.stopPropagation()} />
       </div>

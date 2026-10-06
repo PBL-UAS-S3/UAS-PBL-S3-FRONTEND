@@ -102,7 +102,7 @@ export default function LupaPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@perusahaan.com"
-                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
               />
             </div>
 
@@ -114,13 +114,13 @@ export default function LupaPasswordPage() {
                   value={passwordBaru}
                   onChange={(e) => setPasswordBaru(e.target.value)}
                   placeholder="Minimal 6 karakter"
-                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
                 />
                 <button
                   type="button"
                   onClick={() => setTampilPassword(!tampilPassword)}
                   aria-label={tampilPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#F2842F]"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
                 >
                   <IconMata terlihat={tampilPassword} />
                 </button>
@@ -138,13 +138,13 @@ export default function LupaPasswordPage() {
                     if (e.key === 'Enter' && !loading) resetPassword();
                   }}
                   placeholder="Ulangi password baru"
-                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
                 />
                 <button
                   type="button"
                   onClick={() => setTampilKonfirmasi(!tampilKonfirmasi)}
                   aria-label={tampilKonfirmasi ? 'Sembunyikan password' : 'Tampilkan password'}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#F2842F]"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
                 >
                   <IconMata terlihat={tampilKonfirmasi} />
                 </button>
@@ -166,13 +166,13 @@ export default function LupaPasswordPage() {
           <button
             onClick={resetPassword}
             disabled={loading}
-            className="w-full bg-[#F2842F] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50 shadow-sm"
+            className="w-full bg-[#1E3A8A] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 shadow-sm"
           >
             {loading ? 'Memproses...' : 'Ubah Password'}
           </button>
 
           <p className="text-center text-base text-slate-600 mt-6">
-            <Link href="/login" className="text-[#B9540A] font-semibold hover:text-[#7A3505]">
+            <Link href="/login" className="text-[#1E3A8A] font-semibold hover:text-[#172554]">
               ← Kembali ke login
             </Link>
           </p>
@@ -180,7 +180,7 @@ export default function LupaPasswordPage() {
       </div>
 
       {/* Kanan: Gambar Full Memenuhi Seluruh Sisi Kanan */}
-      <div className="hidden lg:relative lg:block w-1/2 bg-[#FBF8F5] overflow-hidden">
+      <div className="hidden lg:relative lg:block w-1/2 bg-[#F4F6FB] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/paket2.png"

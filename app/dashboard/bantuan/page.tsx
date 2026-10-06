@@ -38,9 +38,9 @@ export default function BantuanPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <LifeBuoy size={28} className="text-[#F2842F]" /> Pusat Bantuan
+            <LifeBuoy size={28} className="text-[#1E3A8A]" /> Pusat Bantuan
           </h1>
-          <p className="text-slate-600 text-base">Pertanyaan yang sering ditanyakan seputar StockVision</p>
+          <p className="text-slate-600 text-base">Pertanyaan yang sering ditanyakan seputar Stockin</p>
         </div>
 
         <div className="space-y-3">

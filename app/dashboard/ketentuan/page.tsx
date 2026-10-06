@@ -11,7 +11,7 @@ export default function KetentuanPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <FileText size={28} className="text-[#F2842F]" /> Ketentuan & Kebijakan
+            <FileText size={28} className="text-[#1E3A8A]" /> Ketentuan & Kebijakan
           </h1>
           <p className="text-slate-600 text-base">
             Dokumen ini adalah contoh placeholder untuk keperluan tugas, belum ditinjau oleh ahli hukum.
@@ -22,7 +22,7 @@ export default function KetentuanPage() {
           <button
             onClick={() => setTab('privasi')}
             className={`px-4 py-2 rounded-lg text-base font-semibold transition ${
-              tab === 'privasi' ? 'bg-[#F2842F] text-white shadow-sm' : 'text-slate-700 hover:bg-[#FEF1E6]'
+              tab === 'privasi' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-slate-700 hover:bg-[#E8EEFC]'
             }`}
           >
             Kebijakan Privasi
@@ -30,7 +30,7 @@ export default function KetentuanPage() {
           <button
             onClick={() => setTab('syarat')}
             className={`px-4 py-2 rounded-lg text-base font-semibold transition ${
-              tab === 'syarat' ? 'bg-[#F2842F] text-white shadow-sm' : 'text-slate-700 hover:bg-[#FEF1E6]'
+              tab === 'syarat' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-slate-700 hover:bg-[#E8EEFC]'
             }`}
           >
             Syarat Ketentuan

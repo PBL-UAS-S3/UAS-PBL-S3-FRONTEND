@@ -44,7 +44,7 @@ function Pagination({
         <button
           onClick={() => onGanti(halamanAktif - 1)}
           disabled={halamanAktif === 1}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
         >
           <ChevronLeft size={18} />
         </button>
@@ -54,8 +54,8 @@ function Pagination({
             onClick={() => onGanti(p)}
             className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
               p === halamanAktif
-                ? 'bg-[#F2842F] text-white shadow-sm'
-                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F]'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A]'
             }`}
           >
             {p}
@@ -64,7 +64,7 @@ function Pagination({
         <button
           onClick={() => onGanti(halamanAktif + 1)}
           disabled={halamanAktif === totalHalaman}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
         >
           <ChevronRight size={18} />
         </button>
@@ -235,7 +235,7 @@ export default function InsightPage() {
       );
     }
     return (
-      <div className="w-12 h-12 rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0">
+      <div className="w-12 h-12 rounded-xl bg-[#E8EEFC] border-2 border-[#1E3A8A]/30 flex items-center justify-center text-[#1E3A8A] shrink-0">
         <Package size={22} />
       </div>
     );
@@ -262,7 +262,7 @@ export default function InsightPage() {
           <button
             onClick={generateInsight}
             disabled={generating}
-            className="flex items-center gap-2 bg-[#F2842F] text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-[#DD6F1B] transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed w-fit"
+            className="flex items-center gap-2 bg-[#1E3A8A] text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-[#172E6E] transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed w-fit"
           >
             <Sparkles size={18} />
             {generating ? "Menganalisis..." : "Generate Insight Baru"}
@@ -344,7 +344,7 @@ export default function InsightPage() {
                         onChange={(e) =>
                           handleJumlahChange(item.sku, e.target.value)
                         }
-                        className="w-28 bg-white border-2 border-slate-300 rounded-xl px-3 py-2 text-base font-bold text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+                        className="w-28 bg-white border-2 border-slate-300 rounded-xl px-3 py-2 text-base font-bold text-slate-900 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
                       />
                       <button
                         onClick={() =>
@@ -355,7 +355,7 @@ export default function InsightPage() {
                           )
                         }
                         disabled={poLoadingSku === item.sku}
-                        className="flex-1 bg-[#F2842F] text-white text-base font-semibold py-2 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50"
+                        className="flex-1 bg-[#1E3A8A] text-white text-base font-semibold py-2 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50"
                       >
                         {poLoadingSku === item.sku
                           ? "Membuat PO..."

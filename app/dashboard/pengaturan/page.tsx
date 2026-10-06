@@ -10,7 +10,7 @@ import {
 const BASE_URL = 'http://localhost:3000';
 
 const INPUT_KELAS =
-  'w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30';
+  'w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30';
 
 const LABEL_KELAS = 'text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5';
 
@@ -44,9 +44,9 @@ function KartuTautan({ href, Icon, label, desk }: { href: string; Icon: React.El
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 bg-white border-2 border-slate-200 rounded-xl p-4 hover:border-[#F2842F] hover:bg-[#FFF8F2] transition"
+      className="flex items-center gap-3 bg-white border-2 border-slate-200 rounded-xl p-4 hover:border-[#1E3A8A] hover:bg-[#F4F7FF] transition"
     >
-      <div className="w-10 h-10 rounded-lg bg-[#FEF1E6] text-[#F2842F] flex items-center justify-center shrink-0">
+      <div className="w-10 h-10 rounded-lg bg-[#E8EEFC] text-[#1E3A8A] flex items-center justify-center shrink-0">
         <Icon size={20} />
       </div>
       <div className="flex-1 min-w-0">
@@ -280,7 +280,7 @@ export default function PengaturanPage() {
         {/* ===================== Alamat Gudang ===================== */}
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
-            <MapPin size={20} className="text-[#F2842F]" /> Alamat Gudang
+            <MapPin size={20} className="text-[#1E3A8A]" /> Alamat Gudang
           </h2>
           <p className="text-sm text-slate-500 mb-5">
             Satu alamat untuk seluruh sistem — berlaku sama untuk semua akun Manager dan ditampilkan juga
@@ -321,9 +321,9 @@ export default function PengaturanPage() {
                         <button
                           key={idx}
                           onClick={() => pilihHasil(item)}
-                          className="w-full flex items-start gap-2 text-left px-4 py-2.5 hover:bg-[#FFF8F2] text-sm text-slate-700 border-b border-slate-100 last:border-0"
+                          className="w-full flex items-start gap-2 text-left px-4 py-2.5 hover:bg-[#F4F7FF] text-sm text-slate-700 border-b border-slate-100 last:border-0"
                         >
-                          <MapPin size={14} className="text-[#F2842F] mt-0.5 shrink-0" />
+                          <MapPin size={14} className="text-[#1E3A8A] mt-0.5 shrink-0" />
                           <span>{item.display_name}</span>
                         </button>
                       ))}
@@ -395,7 +395,7 @@ export default function PengaturanPage() {
                 <button
                   onClick={simpanAlamat}
                   disabled={savingAlamat}
-                  className="flex items-center gap-2 bg-[#F2842F] text-white text-base font-semibold px-5 py-2.5 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50"
+                  className="flex items-center gap-2 bg-[#1E3A8A] text-white text-base font-semibold px-5 py-2.5 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50"
                 >
                   <Save size={18} /> {savingAlamat ? 'Menyimpan...' : 'Simpan Alamat'}
                 </button>

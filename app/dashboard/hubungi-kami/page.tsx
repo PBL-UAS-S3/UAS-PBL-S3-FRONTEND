@@ -46,7 +46,7 @@ export default function HubungiKamiPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <MessageSquare size={28} className="text-[#F2842F]" /> Hubungi Kami
+            <MessageSquare size={28} className="text-[#1E3A8A]" /> Hubungi Kami
           </h1>
           <p className="text-slate-600 text-base">Laporkan kendala, bug, atau masukan untuk tim kami</p>
         </div>
@@ -58,7 +58,7 @@ export default function HubungiKamiPage() {
             onChange={(e) => setPesan(e.target.value)}
             placeholder="Jelaskan kendala yang kamu alami..."
             rows={8}
-            className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+            className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
           />
 
           {pesanError && <p className="text-red-700 text-base font-semibold mt-3">{pesanError}</p>}
@@ -67,7 +67,7 @@ export default function HubungiKamiPage() {
           <button
             onClick={kirim}
             disabled={loading}
-            className="flex items-center gap-2 bg-[#F2842F] text-white text-base font-semibold px-6 py-2.5 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50 mt-5"
+            className="flex items-center gap-2 bg-[#1E3A8A] text-white text-base font-semibold px-6 py-2.5 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 mt-5"
           >
             <Send size={18} /> {loading ? 'Mengirim...' : 'Kirim Pesan'}
           </button>

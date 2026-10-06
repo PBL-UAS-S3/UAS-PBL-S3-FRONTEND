@@ -31,7 +31,7 @@ function KartuPO({
   nilai,
   ikon,
   warnaNilai = 'text-slate-900',
-  warnaIkon = 'bg-[#FEF1E6]',
+  warnaIkon = 'bg-[#E8EEFC]',
 }: {
   label: string;
   nilai: string | number;
@@ -144,7 +144,7 @@ export default function PurchaseOrderPage() {
       );
     }
     return (
-      <div className="w-11 h-11 rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0">
+      <div className="w-11 h-11 rounded-xl bg-[#E8EEFC] border-2 border-[#1E3A8A]/30 flex items-center justify-center text-[#1E3A8A] shrink-0">
         <Package className="w-5 h-5" />
       </div>
     );
@@ -175,12 +175,12 @@ export default function PurchaseOrderPage() {
           <KartuPO
             label="Menunggu Approval"
             nilai={loading ? '-' : jumlahMenunggu}
-            ikon={<Clock className="w-6 h-6 text-[#B9540A]" />}
-            warnaNilai="text-[#B9540A]"
+            ikon={<Clock className="w-6 h-6 text-[#1E3A8A]" />}
+            warnaNilai="text-[#1E3A8A]"
           />
 
-          {/* Kartu nilai: oranye penuh sebagai penekanan */}
-          <div className="bg-[#F2842F] rounded-2xl shadow-sm p-5 min-w-0 text-white">
+          {/* Kartu nilai: navy penuh sebagai penekanan */}
+          <div className="bg-[#1E3A8A] rounded-2xl shadow-sm p-5 min-w-0 text-white">
             <div className="w-12 h-12 rounded-xl bg-white/25 flex items-center justify-center mb-3">
               <Wallet className="w-6 h-6 text-white" />
             </div>
@@ -199,10 +199,10 @@ export default function PurchaseOrderPage() {
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
           <div className="inline-flex bg-white border-2 border-slate-200 rounded-xl p-1 w-fit">
-            <button onClick={() => setTab('menunggu')} className={`px-4 py-2 rounded-lg text-base font-semibold transition ${tab === 'menunggu' ? 'bg-[#F2842F] text-white shadow-sm' : 'text-slate-700 hover:bg-[#FEF1E6]'}`}>
+            <button onClick={() => setTab('menunggu')} className={`px-4 py-2 rounded-lg text-base font-semibold transition ${tab === 'menunggu' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-slate-700 hover:bg-[#E8EEFC]'}`}>
               Menunggu Approval ({jumlahMenunggu})
             </button>
-            <button onClick={() => setTab('semua')} className={`px-4 py-2 rounded-lg text-base font-semibold transition ${tab === 'semua' ? 'bg-[#F2842F] text-white shadow-sm' : 'text-slate-700 hover:bg-[#FEF1E6]'}`}>
+            <button onClick={() => setTab('semua')} className={`px-4 py-2 rounded-lg text-base font-semibold transition ${tab === 'semua' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-slate-700 hover:bg-[#E8EEFC]'}`}>
               Semua PO ({pos.length})
             </button>
           </div>
@@ -212,7 +212,7 @@ export default function PurchaseOrderPage() {
               placeholder="Cari No. PO atau produk..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full bg-white border-2 border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+              className="w-full bg-white border-2 border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
             />
           </div>
         </div>
@@ -220,7 +220,7 @@ export default function PurchaseOrderPage() {
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left" style={{ minWidth: 900 }}>
-              <thead className="bg-[#FDE9D6] text-[#7A3505] text-sm uppercase tracking-wide border-b-2 border-[#F2842F]/40">
+              <thead className="bg-[#DBE5FB] text-[#172554] text-sm uppercase tracking-wide border-b-2 border-[#1E3A8A]/40">
                 <tr>
                   <th className="px-5 py-3.5 font-bold">No. PO</th>
                   <th className="px-5 py-3.5 font-bold">Produk</th>
@@ -235,7 +235,7 @@ export default function PurchaseOrderPage() {
                 {loading && <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-600 text-base">Memuat data...</td></tr>}
                 {!loading && daftarTersaring.length === 0 && <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-600 text-base">Tidak ada Purchase Order yang cocok.</td></tr>}
                 {daftarTersaring.map((po) => (
-                  <tr key={po.id} className="border-b border-slate-200 hover:bg-[#FFF8F2] transition">
+                  <tr key={po.id} className="border-b border-slate-200 hover:bg-[#F4F7FF] transition">
                     <td className="px-5 py-4 font-mono text-base text-slate-700 whitespace-nowrap">{nomorPO(po)}</td>
                     <td className="px-5 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export default function PurchaseOrderPage() {
                         <button
                           onClick={() => tandaiSelesai(po.id)}
                           disabled={prosesId === po.id}
-                          className="flex items-center gap-1.5 bg-[#F2842F] text-white text-base font-semibold px-4 py-2 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50 whitespace-nowrap"
+                          className="flex items-center gap-1.5 bg-[#1E3A8A] text-white text-base font-semibold px-4 py-2 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 whitespace-nowrap"
                         >
                           {prosesId !== po.id && <Check className="w-4 h-4" />}
                           <span>{prosesId === po.id ? 'Memproses...' : 'Approve'}</span>

@@ -94,7 +94,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@perusahaan.com"
-                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
               />
             </div>
             <div>
@@ -110,19 +110,19 @@ export default function LoginPage() {
                     if (e.key === 'Enter' && !loading) login();
                   }}
                   placeholder="••••••••"
-                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
                 />
                 <button
                   type="button"
                   onClick={() => setTampilPassword(!tampilPassword)}
                   aria-label={tampilPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#F2842F]"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
                 >
                   <IconMata terlihat={tampilPassword} />
                 </button>
               </div>
               <div className="text-right mt-1.5">
-                <Link href="/lupa-password" className="text-sm text-[#B9540A] font-semibold hover:text-[#7A3505]">
+                <Link href="/lupa-password" className="text-sm text-[#1E3A8A] font-semibold hover:text-[#172554]">
                   Lupa password?
                 </Link>
               </div>
@@ -138,14 +138,14 @@ export default function LoginPage() {
           <button
             onClick={login}
             disabled={loading}
-            className="w-full bg-[#F2842F] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50 shadow-sm"
+            className="w-full bg-[#1E3A8A] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 shadow-sm"
           >
             {loading ? 'Memproses...' : 'Masuk'}
           </button>
 
           <p className="text-center text-base text-slate-600 mt-6">
             Belum punya akun?{' '}
-            <Link href="/register" className="text-[#B9540A] font-semibold hover:text-[#7A3505]">
+            <Link href="/register" className="text-[#1E3A8A] font-semibold hover:text-[#172554]">
               Buat akun
             </Link>
           </p>
@@ -153,7 +153,7 @@ export default function LoginPage() {
       </div>
 
       {/* Kanan: Gambar Full Memenuhi Seluruh Sisi Kanan */}
-      <div className="hidden lg:relative lg:block w-1/2 bg-[#FBF8F5] overflow-hidden">
+      <div className="hidden lg:relative lg:block w-1/2 bg-[#F4F6FB] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/paket3.png"

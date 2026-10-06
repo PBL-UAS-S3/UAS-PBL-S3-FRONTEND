@@ -19,7 +19,7 @@ const BASE_URL = 'http://localhost:3000';
 const ITEM_PER_HALAMAN = 10;
 
 const SELECT_KELAS =
-  'bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30';
+  'bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30';
 
 function Pagination({
   halamanAktif,
@@ -46,7 +46,7 @@ function Pagination({
         <button
           onClick={() => onGanti(halamanAktif - 1)}
           disabled={halamanAktif === 1}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
         >
           <ChevronLeft size={18} />
         </button>
@@ -56,8 +56,8 @@ function Pagination({
             onClick={() => onGanti(p)}
             className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
               p === halamanAktif
-                ? 'bg-[#F2842F] text-white shadow-sm'
-                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F]'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A]'
             }`}
           >
             {p}
@@ -66,7 +66,7 @@ function Pagination({
         <button
           onClick={() => onGanti(halamanAktif + 1)}
           disabled={halamanAktif === totalHalaman}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
         >
           <ChevronRight size={18} />
         </button>
@@ -123,7 +123,7 @@ export default function RiwayatPage() {
         />
       );
     }
-    return <div className="w-11 h-11 rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0"><Package size={20} /></div>;
+    return <div className="w-11 h-11 rounded-xl bg-[#E8EEFC] border-2 border-[#1E3A8A]/30 flex items-center justify-center text-[#1E3A8A] shrink-0"><Package size={20} /></div>;
   }
 
   const daftarStaf = Array.from(new Set(transaksi.map((t) => t.nama_staf)));
@@ -154,7 +154,7 @@ export default function RiwayatPage() {
             placeholder="Cari produk, SKU, atau catatan..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className="flex-1 bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+            className="flex-1 bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
           />
           <select value={tipeFilter} onChange={(e) => setTipeFilter(e.target.value)} className={SELECT_KELAS}>
             <option value="">Semua Tipe</option>
@@ -170,7 +170,7 @@ export default function RiwayatPage() {
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left" style={{ minWidth: 800 }}>
-              <thead className="bg-[#FDE9D6] text-[#7A3505] text-sm uppercase tracking-wide border-b-2 border-[#F2842F]/40">
+              <thead className="bg-[#DBE5FB] text-[#172554] text-sm uppercase tracking-wide border-b-2 border-[#1E3A8A]/40">
                 <tr>
                   <th className="px-5 py-3.5 font-bold whitespace-nowrap">Waktu</th>
                   <th className="px-5 py-3.5 font-bold whitespace-nowrap">Produk</th>
@@ -184,7 +184,7 @@ export default function RiwayatPage() {
                 {loading && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-600 text-base">Memuat data...</td></tr>}
                 {!loading && transaksiTersaring.length === 0 && <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-600 text-base">Tidak ada transaksi yang cocok.</td></tr>}
                 {transaksiHalamanIni.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-200 hover:bg-[#FFF8F2] transition">
+                  <tr key={t.id} className="border-b border-slate-200 hover:bg-[#F4F7FF] transition">
                     <td className="px-5 py-4 text-slate-700 text-base whitespace-nowrap">{formatWaktu(t.created_at)}</td>
                     <td className="px-5 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">

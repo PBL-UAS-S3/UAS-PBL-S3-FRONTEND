@@ -51,7 +51,7 @@ const FORM_KOSONG: FormState = {
 };
 
 const INPUT_KELAS =
-  'w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30';
+  'w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30';
 
 function Pagination({
   halamanAktif,
@@ -78,7 +78,7 @@ function Pagination({
         <button
           onClick={() => onGanti(halamanAktif - 1)}
           disabled={halamanAktif === 1}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
         >
           <ChevronLeft size={18} />
         </button>
@@ -88,8 +88,8 @@ function Pagination({
             onClick={() => onGanti(p)}
             className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
               p === halamanAktif
-                ? 'bg-[#F2842F] text-white shadow-sm'
-                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F]'
+                ? 'bg-[#1E3A8A] text-white shadow-sm'
+                : 'border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A]'
             }`}
           >
             {p}
@@ -98,7 +98,7 @@ function Pagination({
         <button
           onClick={() => onGanti(halamanAktif + 1)}
           disabled={halamanAktif === totalHalaman}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#FEF1E6] hover:border-[#F2842F] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-[#E8EEFC] hover:border-[#1E3A8A] disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-slate-300 transition"
         >
           <ChevronRight size={18} />
         </button>
@@ -320,7 +320,7 @@ export default function MasterDataPage() {
       );
     }
     return (
-      <div style={{ width: ukuran, height: ukuran }} className="rounded-xl bg-[#FEF1E6] border-2 border-[#F2842F]/30 flex items-center justify-center text-[#F2842F] shrink-0">
+      <div style={{ width: ukuran, height: ukuran }} className="rounded-xl bg-[#E8EEFC] border-2 border-[#1E3A8A]/30 flex items-center justify-center text-[#1E3A8A] shrink-0">
         <Package className="w-6 h-6" />
       </div>
     );
@@ -352,7 +352,7 @@ export default function MasterDataPage() {
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Master Data Inventory</h1>
             <p className="text-slate-600 text-base">Kelola data produk dan pantau status stok gudang</p>
           </div>
-          <button onClick={bukaModalTambah} className="flex items-center gap-2 bg-[#F2842F] text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-[#DD6F1B] transition shadow-sm w-fit">
+          <button onClick={bukaModalTambah} className="flex items-center gap-2 bg-[#1E3A8A] text-white text-base font-semibold px-6 py-3 rounded-xl hover:bg-[#172E6E] transition shadow-sm w-fit">
             <Plus className="w-5 h-5" />
             <span>Tambah Produk</span>
           </button>
@@ -365,14 +365,14 @@ export default function MasterDataPage() {
               placeholder="Cari nama produk atau SKU..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full bg-white border-2 border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30"
+              className="w-full bg-white border-2 border-slate-300 rounded-xl pl-11 pr-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
             />
           </div>
-          <select value={kategoriFilter} onChange={(e) => setKategoriFilter(e.target.value)} className="bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30">
+          <select value={kategoriFilter} onChange={(e) => setKategoriFilter(e.target.value)} className="bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30">
             <option value="">Semua Kategori</option>
             {daftarKategori.map((k) => <option key={k} value={k}>{k}</option>)}
           </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#F2842F] focus:ring-2 focus:ring-[#F2842F]/30">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30">
             <option value="">Semua Status</option>
             <option value="aman">Aman</option>
             <option value="perlu">Perlu Dipantau</option>
@@ -383,7 +383,7 @@ export default function MasterDataPage() {
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left" style={{ minWidth: 1050 }}>
-              <thead className="bg-[#FDE9D6] text-[#7A3505] text-sm uppercase tracking-wide border-b-2 border-[#F2842F]/40">
+              <thead className="bg-[#DBE5FB] text-[#172554] text-sm uppercase tracking-wide border-b-2 border-[#1E3A8A]/40">
                 <tr>
                   <th className="px-5 py-3.5 font-bold">Produk</th>
                   <th className="px-5 py-3.5 font-bold">Kategori</th>
@@ -396,7 +396,7 @@ export default function MasterDataPage() {
               </thead>
               <tbody>
                 {produkHalamanIni.map((p) => (
-                  <tr key={p.id} className="border-b border-slate-200 hover:bg-[#FFF8F2] transition">
+                  <tr key={p.id} className="border-b border-slate-200 hover:bg-[#F4F7FF] transition">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <Thumbnail gambar={p.gambar} bisaDiklik />
@@ -413,7 +413,7 @@ export default function MasterDataPage() {
                     <td className="px-5 py-4">{statusBadge(p)}</td>
                     <td className="px-5 py-4">
                       <div className="flex gap-2 whitespace-nowrap">
-                        <button onClick={() => bukaModalEdit(p)} className="flex items-center gap-1.5 border-2 border-[#F2842F] text-[#B9540A] hover:bg-[#FEF1E6] font-semibold text-sm px-3 py-1.5 rounded-lg transition">
+                        <button onClick={() => bukaModalEdit(p)} className="flex items-center gap-1.5 border-2 border-[#1E3A8A] text-[#1E3A8A] hover:bg-[#E8EEFC] font-semibold text-sm px-3 py-1.5 rounded-lg transition">
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button onClick={() => setBarcodeProduct(p)} className="flex items-center gap-1.5 border-2 border-slate-300 text-slate-800 hover:bg-slate-100 font-semibold text-sm px-3 py-1.5 rounded-lg transition">
@@ -458,7 +458,7 @@ export default function MasterDataPage() {
                 <div className="flex items-center gap-4">
                   <Thumbnail gambar={form.gambar} ukuran={80} />
                   <div>
-                    <label className="inline-flex items-center gap-2 border-2 border-[#F2842F] text-[#B9540A] text-base font-semibold px-4 py-2 rounded-xl cursor-pointer hover:bg-[#FEF1E6] transition">
+                    <label className="inline-flex items-center gap-2 border-2 border-[#1E3A8A] text-[#1E3A8A] text-base font-semibold px-4 py-2 rounded-xl cursor-pointer hover:bg-[#E8EEFC] transition">
                       <Upload className="w-5 h-5" />
                       <span>{uploading ? 'Mengunggah...' : 'Pilih Foto'}</span>
                       <input
@@ -558,7 +558,7 @@ export default function MasterDataPage() {
               {pesan && <p className="text-red-700 mb-3 text-base font-semibold">{pesan}</p>}
 
               <div className="flex gap-3">
-                <button onClick={simpanProduk} disabled={uploading} className="bg-[#F2842F] text-white text-base font-semibold px-6 py-2.5 rounded-xl hover:bg-[#DD6F1B] transition disabled:opacity-50">
+                <button onClick={simpanProduk} disabled={uploading} className="bg-[#1E3A8A] text-white text-base font-semibold px-6 py-2.5 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50">
                   {editingId ? 'Update Produk' : 'Tambah Produk'}
                 </button>
                 <button onClick={() => setShowModal(false)} className="border-2 border-slate-300 text-slate-800 text-base font-semibold px-6 py-2.5 rounded-xl hover:bg-slate-100 transition">Batal</button>
@@ -589,7 +589,7 @@ export default function MasterDataPage() {
               <p className="text-base text-slate-600 mb-6">{barcodeProduct.nama}</p>
               <button
                 onClick={() => downloadBarcode(barcodeProduct.sku, barcodeProduct.nama)}
-                className="w-full flex items-center justify-center gap-2 bg-[#F2842F] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#DD6F1B] transition"
+                className="w-full flex items-center justify-center gap-2 bg-[#1E3A8A] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#172E6E] transition"
               >
                 <Download className="w-5 h-5" />
                 <span>Download QR</span>

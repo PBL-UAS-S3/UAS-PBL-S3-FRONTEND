@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
   ScanLine,
   Sparkles,
@@ -15,15 +15,15 @@ function IlustrasiPaket({ ukuran = "lg" }: { ukuran?: "lg" | "md" }) {
   const lebar = ukuran === "lg" ? "max-w-sm" : "max-w-xs";
   return (
     <motion.div
-      animate={{ y: [0, -14, 0], rotate: [0, 1.5, 0, -1.5, 0] }}
-      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      style={{ transformStyle: "preserve-3d" }}
+      animate={{ y: [0, -10, 0] }}
+      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      className="will-change-transform"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/paket6.png"
         alt="Ilustrasi Paket Gudang"
-        className={`w-full h-auto ${lebar} object-contain drop-shadow-2xl`}
+        className={`w-full h-auto ${lebar} object-contain drop-shadow-xl`}
       />
     </motion.div>
   );
@@ -94,23 +94,31 @@ const faqRingkas = [
   },
 ];
 
-// Kartu mockup dashboard dengan efek 3D tilt — miring mengikuti posisi mouse
+// OPTIMASI: Menggunakan MotionValue tanpa re-render React saat mouse bergerak
 function MockupDashboard() {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [rotasi, setRotasi] = useState({ x: 0, y: 0 });
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), {
+    stiffness: 100,
+    damping: 20,
+  });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), {
+    stiffness: 100,
+    damping: 20,
+  });
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     const rect = wrapperRef.current?.getBoundingClientRect();
     if (!rect) return;
-
-    const persenX = (e.clientX - rect.left) / rect.width - 0.5;
-    const persenY = (e.clientY - rect.top) / rect.height - 0.5;
-
-    setRotasi({ x: persenY * -10, y: persenX * 10 });
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
   }
 
   function handleMouseLeave() {
-    setRotasi({ x: 0, y: 0 });
+    x.set(0);
+    y.set(0);
   }
 
   return (
@@ -118,14 +126,12 @@ function MockupDashboard() {
       ref={wrapperRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ perspective: 1200 }}
+      style={{ perspective: 1000 }}
       className="max-w-3xl mx-auto"
     >
       <motion.div
-        animate={{ rotateX: rotasi.x, rotateY: rotasi.y }}
-        transition={{ type: "spring", stiffness: 150, damping: 15 }}
-        style={{ transformStyle: "preserve-3d" }}
-        className="bg-white rounded-2xl shadow-2xl border-2 border-slate-200 overflow-hidden"
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 overflow-hidden transform-gpu"
       >
         <div className="bg-slate-100 border-b-2 border-slate-200 px-4 py-2.5 flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-red-400" />
@@ -137,7 +143,7 @@ function MockupDashboard() {
         </div>
         <div className="flex">
           <div className="w-16 md:w-40 bg-white border-r-2 border-slate-100 py-4 px-2 md:px-3 space-y-2 shrink-0">
-            <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-[#F2842F] text-white text-xs font-semibold">
+            <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-[#1E3A8A] text-white text-xs font-semibold">
               <span>🏠</span>
               <span className="hidden md:inline">Dashboard</span>
             </div>
@@ -154,7 +160,7 @@ function MockupDashboard() {
               <span className="hidden md:inline">Purchase Order</span>
             </div>
           </div>
-          <div className="flex-1 p-4 md:p-5 bg-[#FBF8F5]">
+          <div className="flex-1 p-4 md:p-5 bg-[#F4F6FB]">
             <div className="grid grid-cols-4 gap-2 md:gap-3 mb-4">
               <div className="bg-white border-2 border-slate-200 rounded-xl p-2 md:p-3">
                 <p className="text-[9px] md:text-xs text-slate-400">Produk</p>
@@ -174,7 +180,7 @@ function MockupDashboard() {
                   24
                 </p>
               </div>
-              <div className="bg-[#F2842F] rounded-xl p-2 md:p-3">
+              <div className="bg-[#1E3A8A] rounded-xl p-2 md:p-3">
                 <p className="text-[9px] md:text-xs text-white/80">
                   Nilai Stok
                 </p>
@@ -184,7 +190,7 @@ function MockupDashboard() {
               </div>
             </div>
             <div className="bg-white border-2 border-slate-200 rounded-xl p-3 space-y-2">
-              <div className="h-2 md:h-2.5 bg-[#FDE9D6] rounded-full w-full" />
+              <div className="h-2 md:h-2.5 bg-[#DBE5FB] rounded-full w-full" />
               <div className="h-2 md:h-2.5 bg-slate-100 rounded-full w-5/6" />
               <div className="h-2 md:h-2.5 bg-slate-100 rounded-full w-4/6" />
               <div className="h-2 md:h-2.5 bg-slate-100 rounded-full w-full" />
@@ -196,7 +202,6 @@ function MockupDashboard() {
   );
 }
 
-// Mockup mini generik untuk galeri fitur (Master Data, AI Insight, Purchase Order)
 function MockupMini({
   judul,
   children,
@@ -205,14 +210,14 @@ function MockupMini({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-200 overflow-hidden h-full">
+    <div className="bg-white rounded-2xl shadow-md border-2 border-slate-200 overflow-hidden h-full">
       <div className="bg-slate-100 border-b-2 border-slate-200 px-3 py-2 flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full bg-red-400" />
         <span className="w-2 h-2 rounded-full bg-amber-400" />
         <span className="w-2 h-2 rounded-full bg-emerald-400" />
         <span className="ml-2 text-[10px] text-slate-400">{judul}</span>
       </div>
-      <div className="p-3 bg-[#FBF8F5] h-[180px]">{children}</div>
+      <div className="p-3 bg-[#F4F6FB] h-[180px]">{children}</div>
     </div>
   );
 }
@@ -220,7 +225,7 @@ function MockupMini({
 function MockupMasterData() {
   return (
     <div className="bg-white border-2 border-slate-200 rounded-lg overflow-hidden text-[9px]">
-      <div className="bg-[#FDE9D6] px-2 py-1.5 font-bold text-[#7A3505] flex justify-between">
+      <div className="bg-[#DBE5FB] px-2 py-1.5 font-bold text-[#172554] flex justify-between">
         <span>Produk</span>
         <span>Stok</span>
         <span>Status</span>
@@ -231,7 +236,7 @@ function MockupMasterData() {
           className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100"
         >
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded bg-[#FEF1E6] shrink-0" />
+            <div className="w-4 h-4 rounded bg-[#E8EEFC] shrink-0" />
             <span className="text-slate-700">{n}</span>
           </div>
           <span className="font-bold text-slate-900">{[12, 3, 24][i]}</span>
@@ -250,7 +255,7 @@ function MockupAIInsight() {
   return (
     <div className="bg-white border-2 border-slate-200 rounded-lg p-2.5 text-[9px]">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <Sparkles size={12} className="text-[#F2842F]" />
+        <Sparkles size={12} className="text-[#1E3A8A]" />
         <span className="font-bold text-slate-900">Mouse Wireless</span>
         <span className="ml-auto px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[8px] font-bold">
           Perlu restock
@@ -264,7 +269,7 @@ function MockupAIInsight() {
         <div className="bg-slate-100 rounded px-2 py-1 font-bold text-slate-700">
           25
         </div>
-        <div className="flex-1 bg-[#F2842F] text-white text-center rounded py-1 font-semibold">
+        <div className="flex-1 bg-[#1E3A8A] text-white text-center rounded py-1 font-semibold">
           Buat PO
         </div>
       </div>
@@ -275,7 +280,7 @@ function MockupAIInsight() {
 function MockupPO() {
   return (
     <div className="bg-white border-2 border-slate-200 rounded-lg overflow-hidden text-[9px]">
-      <div className="bg-[#FDE9D6] px-2 py-1.5 font-bold text-[#7A3505] flex justify-between">
+      <div className="bg-[#DBE5FB] px-2 py-1.5 font-bold text-[#172554] flex justify-between">
         <span>No. PO</span>
         <span>Jumlah</span>
         <span>Status</span>
@@ -301,24 +306,21 @@ function MockupPO() {
   );
 }
 
-// Pembungkus animasi "muncul saat discroll" — dipakai berulang di tiap section
+// OPTIMASI: Animasi reveal dibuat lebih halus, ringan, dan dipaksa lewat GPU hardware acceleration
 function Reveal({
   children,
   delay = 0,
-  arah = "up",
 }: {
   children: React.ReactNode;
   delay?: number;
-  arah?: "up" | "left" | "right";
 }) {
-  const offset =
-    arah === "up" ? { y: 32 } : arah === "left" ? { x: -32 } : { x: 32 };
   return (
     <motion.div
-      initial={{ opacity: 0, ...offset }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6, delay, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.4, delay, ease: "easeOut" }}
+      className="transform-gpu"
     >
       {children}
     </motion.div>
@@ -338,7 +340,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         </span>
         <ChevronDown
           size={18}
-          className={`text-slate-500 shrink-0 transition-transform ${buka ? "rotate-180" : ""}`}
+          className={`text-slate-500 shrink-0 transition-transform duration-200 ${buka ? "rotate-180" : ""}`}
         />
       </button>
       {buka && (
@@ -352,9 +354,9 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#FBF8F5] overflow-x-hidden">
-      {/* Navbar */}
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b-2 border-slate-100">
+    <main className="min-h-screen bg-[#F4F6FB] overflow-x-hidden">
+      {/* Navbar — OPTIMASI: Menghapus backdrop-blur yang berat saat scroll */}
+      <header className="sticky top-0 z-20 bg-white/95 border-b-2 border-slate-100">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-[#0000] flex items-center justify-center text-lg shrink-0">
@@ -375,7 +377,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/register"
-              className="px-4 py-2 rounded-xl bg-[#F2842F] text-white text-sm md:text-base font-semibold hover:bg-[#DD6F1B] transition shadow-sm"
+              className="px-4 py-2 rounded-xl bg-[#1E3A8A] text-white text-sm md:text-base font-semibold hover:bg-[#172E6E] transition shadow-sm"
             >
               Daftar
             </Link>
@@ -385,13 +387,13 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 pt-12 md:pt-20 pb-10 grid md:grid-cols-2 gap-10 items-center">
-        <Reveal arah="left">
-          <span className="inline-block bg-[#FEF1E6] text-[#B9540A] text-xs md:text-sm font-bold px-3 py-1.5 rounded-full mb-4">
+        <Reveal>
+          <span className="inline-block bg-[#E8EEFC] text-[#1E3A8A] text-xs md:text-sm font-bold px-3 py-1.5 rounded-full mb-4">
             Powered by AI (Gemini)
           </span>
           <h1 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight mb-4">
             Kelola gudang lebih cerdas,{" "}
-            <span className="text-[#F2842F]">tanpa ribet.</span>
+            <span className="text-[#1E3A8A]">tanpa ribet.</span>
           </h1>
           <p className="text-slate-600 text-base md:text-lg mb-8">
             Stockin membantu manager memantau stok dan staf mencatat barang
@@ -401,7 +403,7 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/register"
-              className="px-6 py-3 rounded-xl bg-[#F2842F] text-white text-base font-semibold hover:bg-[#DD6F1B] transition shadow-sm"
+              className="px-6 py-3 rounded-xl bg-[#1E3A8A] text-white text-base font-semibold hover:bg-[#172E6E] transition shadow-sm"
             >
               Mulai Sekarang →
             </Link>
@@ -414,7 +416,7 @@ export default function HomePage() {
           </div>
         </Reveal>
 
-        <Reveal arah="right" delay={0.15}>
+        <Reveal delay={0.1}>
           <div className="flex justify-center">
             <IlustrasiPaket />
           </div>
@@ -424,7 +426,7 @@ export default function HomePage() {
       {/* Cara Kerja */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 pb-16">
         <Reveal>
-          <p className="text-center text-sm font-bold text-[#B9540A] uppercase tracking-wide mb-2">
+          <p className="text-center text-sm font-bold text-[#1E3A8A] uppercase tracking-wide mb-2">
             Alur Sederhana
           </p>
           <h2 className="text-center text-2xl md:text-3xl font-bold text-slate-900 mb-10">
@@ -433,13 +435,13 @@ export default function HomePage() {
         </Reveal>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
           {caraKerjaList.map((c, idx) => (
-            <Reveal key={c.judul} delay={idx * 0.1}>
+            <Reveal key={c.judul} delay={idx * 0.05}>
               <div className="relative bg-white border-2 border-slate-200 rounded-2xl p-5 h-full">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-9 h-9 rounded-full bg-[#F2842F] text-white flex items-center justify-center text-sm font-bold shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-[#1E3A8A] text-white flex items-center justify-center text-sm font-bold shrink-0">
                     {idx + 1}
                   </div>
-                  <c.Icon size={20} className="text-[#F2842F]" />
+                  <c.Icon size={20} className="text-[#1E3A8A]" />
                 </div>
                 <h3 className="font-bold text-slate-900 text-base mb-1">
                   {c.judul}
@@ -451,10 +453,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Preview aplikasi desktop — kartunya bisa di-tilt pakai mouse */}
+      {/* Preview aplikasi desktop */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 pb-16">
         <Reveal>
-          <p className="text-center text-sm font-bold text-[#B9540A] uppercase tracking-wide mb-2">
+          <p className="text-center text-sm font-bold text-[#1E3A8A] uppercase tracking-wide mb-2">
             Tampilan Aplikasi
           </p>
           <h2 className="text-center text-2xl md:text-3xl font-bold text-slate-900 mb-2">
@@ -464,7 +466,7 @@ export default function HomePage() {
             Gerakkan mouse di atas kartu untuk melihat efeknya
           </p>
         </Reveal>
-        <Reveal delay={0.1}>
+        <Reveal delay={0.05}>
           <MockupDashboard />
         </Reveal>
       </section>
@@ -473,7 +475,7 @@ export default function HomePage() {
       <section className="bg-white border-y-2 border-slate-100 py-16">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <Reveal>
-            <p className="text-center text-sm font-bold text-[#B9540A] uppercase tracking-wide mb-2">
+            <p className="text-center text-sm font-bold text-[#1E3A8A] uppercase tracking-wide mb-2">
               Jelajahi Lebih Dalam
             </p>
             <h2 className="text-center text-2xl md:text-3xl font-bold text-slate-900 mb-10">
@@ -492,7 +494,7 @@ export default function HomePage() {
                 </p>
               </MockupMini>
             </Reveal>
-            <Reveal delay={0.1}>
+            <Reveal delay={0.05}>
               <MockupMini judul="stockin.app/insight">
                 <MockupAIInsight />
                 <p className="mt-2 text-xs font-semibold text-slate-700">
@@ -503,7 +505,7 @@ export default function HomePage() {
                 </p>
               </MockupMini>
             </Reveal>
-            <Reveal delay={0.2}>
+            <Reveal delay={0.1}>
               <MockupMini judul="stockin.app/po">
                 <MockupPO />
                 <p className="mt-2 text-xs font-semibold text-slate-700">
@@ -531,9 +533,9 @@ export default function HomePage() {
           </Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
             {fiturList.map((f, idx) => (
-              <Reveal key={f.judul} delay={idx * 0.1}>
+              <Reveal key={f.judul} delay={idx * 0.05}>
                 <div className="bg-white border-2 border-slate-200 rounded-2xl p-5 h-full">
-                  <div className="w-11 h-11 rounded-xl bg-[#FEF1E6] flex items-center justify-center text-xl mb-3">
+                  <div className="w-11 h-11 rounded-xl bg-[#E8EEFC] flex items-center justify-center text-xl mb-3">
                     {f.ikon}
                   </div>
                   <h3 className="font-bold text-slate-900 text-base mb-1">
@@ -551,7 +553,7 @@ export default function HomePage() {
       <section className="bg-white border-y-2 border-slate-100 py-16">
         <div className="max-w-3xl mx-auto px-4 md:px-8">
           <Reveal>
-            <p className="text-center text-sm font-bold text-[#B9540A] uppercase tracking-wide mb-2">
+            <p className="text-center text-sm font-bold text-[#1E3A8A] uppercase tracking-wide mb-2">
               Pertanyaan Umum
             </p>
             <h2 className="text-center text-2xl md:text-3xl font-bold text-slate-900 mb-10">
@@ -560,7 +562,7 @@ export default function HomePage() {
           </Reveal>
           <div className="space-y-3">
             {faqRingkas.map((item, idx) => (
-              <Reveal key={item.q} delay={idx * 0.08}>
+              <Reveal key={item.q} delay={idx * 0.05}>
                 <FaqItem q={item.q} a={item.a} />
               </Reveal>
             ))}
@@ -579,7 +581,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/register"
-            className="inline-block px-8 py-3.5 rounded-xl bg-[#F2842F] text-white text-base font-semibold hover:bg-[#DD6F1B] transition shadow-sm"
+            className="inline-block px-8 py-3.5 rounded-xl bg-[#1E3A8A] text-white text-base font-semibold hover:bg-[#172E6E] transition shadow-sm"
           >
             Buat Akun Gratis
           </Link>

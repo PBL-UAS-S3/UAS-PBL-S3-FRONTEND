@@ -84,7 +84,13 @@ export default function LoginPage() {
           </Link>
 
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Selamat Datang Kembali!</h1>
-          <p className="text-slate-600 text-base mb-8">Masuk ke akun Anda untuk kelola gudang.</p>
+          <p className="text-slate-600 text-base mb-6">Masuk ke akun Anda untuk kelola gudang.</p>
+
+          {pesanError && (
+            <div className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-medium rounded-xl px-4 py-3 mb-5">
+              {pesanError}
+            </div>
+          )}
 
           <div className="space-y-4 mb-6">
             <div>
@@ -128,12 +134,6 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
-
-          {pesanError && (
-            <div className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-medium rounded-xl px-4 py-3 mb-4">
-              {pesanError}
-            </div>
-          )}
 
           <button
             onClick={login}

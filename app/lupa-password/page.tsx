@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const MIN_PASSWORD = 8;
+const POLA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 function IconMata({ terlihat }: { terlihat: boolean }) {
   if (terlihat) {
     return (
@@ -42,8 +45,12 @@ export default function LupaPasswordPage() {
       setPesanError('Semua kolom wajib diisi');
       return;
     }
-    if (passwordBaru.length < 6) {
-      setPesanError('Password minimal 6 karakter');
+    if (!POLA_EMAIL.test(email.trim())) {
+      setPesanError('Format email tidak valid');
+      return;
+    }
+    if (passwordBaru.length < MIN_PASSWORD) {
+      setPesanError(`Password minimal ${MIN_PASSWORD} karakter`);
       return;
     }
     if (passwordBaru !== konfirmasi) {
@@ -56,7 +63,7 @@ export default function LupaPasswordPage() {
       const response = await fetch('http://localhost:3000/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password_baru: passwordBaru }),
+        body: JSON.stringify({ email: email.trim(), password_baru: passwordBaru }),
       });
 
       const data = await response.json();
@@ -92,7 +99,18 @@ export default function LupaPasswordPage() {
           </Link>
 
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Lupa password?</h1>
-          <p className="text-slate-600 text-base mb-8">Masukkan email Manager dan buat password baru.</p>
+          <p className="text-slate-600 text-base mb-6">Masukkan email Manager dan buat password baru.</p>
+
+          {pesanError && (
+            <div className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-medium rounded-xl px-4 py-3 mb-5">
+              {pesanError}
+            </div>
+          )}
+          {pesanSukses && (
+            <div className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-base font-medium rounded-xl px-4 py-3 mb-5">
+              {pesanSukses}
+            </div>
+          )}
 
           <div className="space-y-4 mb-6">
             <div>
@@ -113,7 +131,7 @@ export default function LupaPasswordPage() {
                   type={tampilPassword ? 'text' : 'password'}
                   value={passwordBaru}
                   onChange={(e) => setPasswordBaru(e.target.value)}
-                  placeholder="Minimal 6 karakter"
+                  placeholder={`Minimal ${MIN_PASSWORD} karakter`}
                   className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
                 />
                 <button
@@ -151,17 +169,6 @@ export default function LupaPasswordPage() {
               </div>
             </div>
           </div>
-
-          {pesanError && (
-            <div className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-medium rounded-xl px-4 py-3 mb-4">
-              {pesanError}
-            </div>
-          )}
-          {pesanSukses && (
-            <div className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-base font-medium rounded-xl px-4 py-3 mb-4">
-              {pesanSukses}
-            </div>
-          )}
 
           <button
             onClick={resetPassword}

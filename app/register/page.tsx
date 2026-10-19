@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const MIN_PASSWORD = 8;
+const POLA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 function IconMata({ terlihat }: { terlihat: boolean }) {
   if (terlihat) {
     return (
@@ -23,51 +26,51 @@ function IconMata({ terlihat }: { terlihat: boolean }) {
   );
 }
 
-export default function LupaPasswordPage() {
+export default function RegisterPage() {
   const router = useRouter();
+  const [nama, setNama] = useState('');
   const [email, setEmail] = useState('');
-  const [passwordBaru, setPasswordBaru] = useState('');
-  const [konfirmasi, setKonfirmasi] = useState('');
+  const [password, setPassword] = useState('');
   const [tampilPassword, setTampilPassword] = useState(false);
-  const [tampilKonfirmasi, setTampilKonfirmasi] = useState(false);
+  const [telepon, setTelepon] = useState('');
   const [pesanError, setPesanError] = useState('');
   const [pesanSukses, setPesanSukses] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function resetPassword() {
+  async function register() {
     setPesanError('');
     setPesanSukses('');
 
-    if (!email || !passwordBaru || !konfirmasi) {
-      setPesanError('Semua kolom wajib diisi');
+    if (!nama.trim() || !email.trim() || !password) {
+      setPesanError('Nama, email, dan password wajib diisi');
       return;
     }
-    if (passwordBaru.length < 6) {
-      setPesanError('Password minimal 6 karakter');
+    if (!POLA_EMAIL.test(email.trim())) {
+      setPesanError('Format email tidak valid. Gunakan email aktif, contoh: nama@gmail.com');
       return;
     }
-    if (passwordBaru !== konfirmasi) {
-      setPesanError('Konfirmasi password tidak sama');
+    if (password.length < MIN_PASSWORD) {
+      setPesanError(`Password minimal ${MIN_PASSWORD} karakter`);
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/auth/reset-password', {
+      const response = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password_baru: passwordBaru }),
+        body: JSON.stringify({ nama, email: email.trim(), password, telepon }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setPesanSukses('Password berhasil diubah! Mengarahkan ke halaman login...');
+        setPesanSukses('Akun berhasil dibuat! Mengarahkan ke halaman login...');
         setTimeout(() => {
           router.push('/login');
         }, 1500);
       } else {
-        setPesanError(data.error || 'Gagal mengubah password');
+        setPesanError(data.error || 'Registrasi gagal');
       }
     } catch (err) {
       setPesanError('Gagal konek ke server');
@@ -91,29 +94,50 @@ export default function LupaPasswordPage() {
             <span className="font-bold text-xl text-slate-900">Stockin</span>
           </Link>
 
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Lupa password?</h1>
-          <p className="text-slate-600 text-base mb-8">Masukkan email Manager dan buat password baru.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Jangan sampai barang hilang lagi.</h1>
+          <p className="text-slate-600 text-base mb-6">
+            Akun baru terdaftar sebagai <b className="text-slate-700">Manager</b>. Untuk akun Staf Gudang, gunakan aplikasi mobile.
+          </p>
+
+          {pesanError && (
+            <div className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-medium rounded-xl px-4 py-3 mb-5">
+              {pesanError}
+            </div>
+          )}
+          {pesanSukses && (
+            <div className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-base font-medium rounded-xl px-4 py-3 mb-5">
+              {pesanSukses}
+            </div>
+          )}
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Email</label>
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Nama Lengkap</label>
+              <input
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                placeholder="Nama kamu"
+                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Email Aktif</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@perusahaan.com"
+                placeholder="nama@gmail.com"
                 className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
               />
             </div>
-
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Password Baru</label>
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Buat Password</label>
               <div className="relative">
                 <input
                   type={tampilPassword ? 'text' : 'password'}
-                  value={passwordBaru}
-                  onChange={(e) => setPasswordBaru(e.target.value)}
-                  placeholder="Minimal 6 karakter"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={`Minimal ${MIN_PASSWORD} karakter`}
                   className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
                 />
                 <button
@@ -126,54 +150,29 @@ export default function LupaPasswordPage() {
                 </button>
               </div>
             </div>
-
             <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Konfirmasi Password</label>
-              <div className="relative">
-                <input
-                  type={tampilKonfirmasi ? 'text' : 'password'}
-                  value={konfirmasi}
-                  onChange={(e) => setKonfirmasi(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading) resetPassword();
-                  }}
-                  placeholder="Ulangi password baru"
-                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
-                />
-                <button
-                  type="button"
-                  onClick={() => setTampilKonfirmasi(!tampilKonfirmasi)}
-                  aria-label={tampilKonfirmasi ? 'Sembunyikan password' : 'Tampilkan password'}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
-                >
-                  <IconMata terlihat={tampilKonfirmasi} />
-                </button>
-              </div>
+              <label className="text-sm font-semibold text-slate-700 mb-1 block">Nomor Telepon (Opsional)</label>
+              <input
+                value={telepon}
+                onChange={(e) => setTelepon(e.target.value)}
+                placeholder="08xx-xxxx-xxxx"
+                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
+              />
             </div>
           </div>
 
-          {pesanError && (
-            <div className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-medium rounded-xl px-4 py-3 mb-4">
-              {pesanError}
-            </div>
-          )}
-          {pesanSukses && (
-            <div className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-base font-medium rounded-xl px-4 py-3 mb-4">
-              {pesanSukses}
-            </div>
-          )}
-
           <button
-            onClick={resetPassword}
+            onClick={register}
             disabled={loading}
             className="w-full bg-[#1E3A8A] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 shadow-sm"
           >
-            {loading ? 'Memproses...' : 'Ubah Password'}
+            {loading ? 'Memproses...' : 'Buat Akun'}
           </button>
 
           <p className="text-center text-base text-slate-600 mt-6">
+            Sudah punya akun?{' '}
             <Link href="/login" className="text-[#1E3A8A] font-semibold hover:text-[#172554]">
-              ← Kembali ke login
+              Masuk
             </Link>
           </p>
         </div>
@@ -183,13 +182,13 @@ export default function LupaPasswordPage() {
       <div className="hidden lg:relative lg:block w-1/2 bg-[#F4F6FB] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/paket2.png"
+          src="/paket4.png"
           alt="Ilustrasi Gudang"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-x-0 bottom-0 p-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-center">
           <p className="text-white text-lg font-medium max-w-sm mx-auto drop-shadow">
-            Tenang, akses ke gudang kamu bisa dipulihkan dalam hitungan detik
+            Simple, fast, dan powerful buat tim gudang kamu
           </p>
         </div>
       </div>

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 const BASE_URL = "http://localhost:3000";
+const MIN_PASSWORD = 8;
 
 const INPUT_KELAS =
   "w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30";
@@ -105,8 +106,8 @@ export default function ProfilPage() {
       setPesanPassword("Semua kolom wajib diisi");
       return;
     }
-    if (passwordBaru.length < 6) {
-      setPesanPassword("Password baru minimal 6 karakter");
+    if (passwordBaru.length < MIN_PASSWORD) {
+      setPesanPassword(`Password baru minimal ${MIN_PASSWORD} karakter`);
       return;
     }
     if (passwordBaru !== konfirmasiBaru) {
@@ -187,6 +188,17 @@ export default function ProfilPage() {
                   <User size={20} className="text-[#1E3A8A]" /> Data Diri
                 </h2>
 
+                {pesanProfil && (
+                  <p className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-semibold rounded-xl px-4 py-3 mb-4">
+                    {pesanProfil}
+                  </p>
+                )}
+                {suksesProfil && (
+                  <p className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-base font-semibold rounded-xl px-4 py-3 mb-4">
+                    {suksesProfil}
+                  </p>
+                )}
+
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-slate-700 mb-1 block">
@@ -222,17 +234,6 @@ export default function ProfilPage() {
                   </div>
                 </div>
 
-                {pesanProfil && (
-                  <p className="text-red-700 text-base font-semibold mt-4">
-                    {pesanProfil}
-                  </p>
-                )}
-                {suksesProfil && (
-                  <p className="text-emerald-700 text-base font-semibold mt-4">
-                    {suksesProfil}
-                  </p>
-                )}
-
                 <button
                   onClick={simpanProfil}
                   disabled={savingProfil}
@@ -249,6 +250,17 @@ export default function ProfilPage() {
                   <KeyRound size={20} className="text-[#1E3A8A]" /> Ganti
                   Password
                 </h2>
+
+                {pesanPassword && (
+                  <p className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-semibold rounded-xl px-4 py-3 mb-4">
+                    {pesanPassword}
+                  </p>
+                )}
+                {suksesPassword && (
+                  <p className="bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-base font-semibold rounded-xl px-4 py-3 mb-4">
+                    {suksesPassword}
+                  </p>
+                )}
 
                 <div className="space-y-4">
                   <div>
@@ -270,7 +282,7 @@ export default function ProfilPage() {
                       type="password"
                       value={passwordBaru}
                       onChange={(e) => setPasswordBaru(e.target.value)}
-                      placeholder="Minimal 6 karakter"
+                      placeholder={`Minimal ${MIN_PASSWORD} karakter`}
                       className={INPUT_KELAS}
                     />
                   </div>
@@ -286,17 +298,6 @@ export default function ProfilPage() {
                     />
                   </div>
                 </div>
-
-                {pesanPassword && (
-                  <p className="text-red-700 text-base font-semibold mt-4">
-                    {pesanPassword}
-                  </p>
-                )}
-                {suksesPassword && (
-                  <p className="text-emerald-700 text-base font-semibold mt-4">
-                    {suksesPassword}
-                  </p>
-                )}
 
                 <button
                   onClick={simpanPassword}

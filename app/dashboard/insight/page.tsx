@@ -16,7 +16,7 @@ type Insight = {
   is_terbaru: number;
 };
 
-const BASE_URL = "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const ITEM_PER_HALAMAN = 10;
 
 function Pagination({
@@ -91,7 +91,7 @@ export default function InsightPage() {
     setLoading(true);
     setPesan("");
     try {
-      const res = await fetch(`${BASE_URL}/ai-insights`, {
+      const res = await fetch(`${API_URL}/ai-insights`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -121,7 +121,7 @@ export default function InsightPage() {
     setGenerating(true);
     setPesan("");
     try {
-      const res = await fetch(`${BASE_URL}/ai-insights/generate`, {
+      const res = await fetch(`${API_URL}/ai-insights/generate`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -147,7 +147,7 @@ export default function InsightPage() {
     setPoLoadingSku(sku);
     setPesan("");
     try {
-      const res = await fetch(`${BASE_URL}/purchase-orders`, {
+      const res = await fetch(`${API_URL}/purchase-orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -227,10 +227,10 @@ export default function InsightPage() {
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`${BASE_URL}${gambar}`}
+          src={`${API_URL}${gambar}`}
           alt=""
           className="w-12 h-12 rounded-xl object-cover border-2 border-slate-200 cursor-zoom-in shrink-0"
-          onClick={() => setZoomUrl(`${BASE_URL}${gambar}`)}
+          onClick={() => setZoomUrl(`${API_URL}${gambar}`)}
         />
       );
     }

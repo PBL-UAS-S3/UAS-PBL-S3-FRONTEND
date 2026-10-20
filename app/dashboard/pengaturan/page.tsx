@@ -7,7 +7,7 @@ import {
   Save, ChevronRight, Search, Loader2, Phone, Building2, StickyNote,
 } from 'lucide-react';
 
-const BASE_URL = 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 const INPUT_KELAS =
   'w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30';
@@ -95,7 +95,7 @@ export default function PengaturanPage() {
     async function fetchPengaturan() {
       setLoadingAwal(true);
       try {
-        const res = await fetch(`${BASE_URL}/pengaturan`);
+        const res = await fetch(`${API_URL}/pengaturan`);
         if (res.ok) {
           const data = await res.json();
           setNamaGudang(data.nama_gudang || '');
@@ -249,7 +249,7 @@ export default function PengaturanPage() {
     setPesanAlamat('');
     setSuksesAlamat('');
     try {
-      const res = await fetch(`${BASE_URL}/pengaturan`, {
+      const res = await fetch(`${API_URL}/pengaturan`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({

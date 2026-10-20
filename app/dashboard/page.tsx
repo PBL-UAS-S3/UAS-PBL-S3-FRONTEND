@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Package, AlertTriangle, RefreshCw, Wallet, Sparkles, ArrowRight, PartyPopper } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
 type Product = {
   id: number;
   sku: string;
@@ -53,8 +55,8 @@ export default function DashboardOverviewPage() {
   async function fetchData() {
     setLoading(true);
     const [resProduk, resTransaksi] = await Promise.all([
-      fetch('http://localhost:3000/products'),
-      fetch('http://localhost:3000/transactions/recent'),
+      fetch(`${API_URL}/products`),
+      fetch(`${API_URL}/transactions/recent`),
     ]);
     setProducts(await resProduk.json());
     setTransaksi(await resTransaksi.json());

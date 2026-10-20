@@ -12,7 +12,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-const BASE_URL = "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const MIN_PASSWORD = 8;
 
 const INPUT_KELAS =
@@ -51,7 +51,7 @@ export default function ProfilPage() {
   async function fetchProfil() {
     setLoadingProfil(true);
     try {
-      const res = await fetch(`${BASE_URL}/auth/profil`, {
+      const res = await fetch(`${API_URL}/auth/profil`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -77,7 +77,7 @@ export default function ProfilPage() {
     setPesanProfil("");
     setSuksesProfil("");
     try {
-      const res = await fetch(`${BASE_URL}/auth/profil`, {
+      const res = await fetch(`${API_URL}/auth/profil`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +117,7 @@ export default function ProfilPage() {
 
     setSavingPassword(true);
     try {
-      const res = await fetch(`${BASE_URL}/auth/ganti-password`, {
+      const res = await fetch(`${API_URL}/auth/ganti-password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

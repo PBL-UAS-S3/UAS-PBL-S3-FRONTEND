@@ -24,7 +24,7 @@ type PO = {
   created_at: string;
 };
 
-const BASE_URL = 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 function KartuPO({
   label,
@@ -64,13 +64,13 @@ export default function PurchaseOrderPage() {
     setLoading(true);
     setPesan('');
     try {
-      const res = await fetch(`${BASE_URL}/purchase-orders`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/purchase-orders`, { headers: { Authorization: `Bearer ${token}` } });
 
       if (res.status === 401 || res.status === 403) {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('nama');
-        window.location.href = '/';
+        window.location.href = '/login';
         return;
       }
 
@@ -97,7 +97,7 @@ export default function PurchaseOrderPage() {
     setProsesId(id);
     setPesan('');
     try {
-      const res = await fetch(`${BASE_URL}/purchase-orders/${id}/selesai`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/purchase-orders/${id}/selesai`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
 
       if (res.ok) {
@@ -136,10 +136,10 @@ export default function PurchaseOrderPage() {
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`${BASE_URL}${gambar}`}
+          src={`${API_URL}${gambar}`}
           alt=""
           className="w-11 h-11 rounded-xl object-cover border-2 border-slate-200 cursor-zoom-in shrink-0"
-          onClick={() => setZoomUrl(`${BASE_URL}${gambar}`)}
+          onClick={() => setZoomUrl(`${API_URL}${gambar}`)}
         />
       );
     }

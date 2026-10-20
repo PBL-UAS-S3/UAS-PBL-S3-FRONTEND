@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const MIN_PASSWORD = 8;
+const JEDA_KIRIM = 60;
 const POLA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function IconMata({ terlihat }: { terlihat: boolean }) {
@@ -28,7 +30,9 @@ function IconMata({ terlihat }: { terlihat: boolean }) {
 
 export default function LupaPasswordPage() {
   const router = useRouter();
+  const [langkah, setLangkah] = useState<1 | 2>(1);
   const [email, setEmail] = useState('');
+  const [kode, setKode] = useState('');
   const [passwordBaru, setPasswordBaru] = useState('');
   const [konfirmasi, setKonfirmasi] = useState('');
   const [tampilPassword, setTampilPassword] = useState(false);
@@ -36,17 +40,55 @@ export default function LupaPasswordPage() {
   const [pesanError, setPesanError] = useState('');
   const [pesanSukses, setPesanSukses] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hitungMundur, setHitungMundur] = useState(0);
+
+  useEffect(() => {
+    if (hitungMundur <= 0) return;
+    const t = setTimeout(() => setHitungMundur((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [hitungMundur]);
+
+  async function kirimKode() {
+    setPesanError('');
+    setPesanSukses('');
+
+    if (!POLA_EMAIL.test(email.trim())) {
+      setPesanError('Format email tidak valid');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/lupa-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setLangkah(2);
+        setHitungMundur(JEDA_KIRIM);
+        setPesanSukses('Jika email terdaftar sebagai Manager, kode 6 digit sudah dikirim. Cek kotak masuk atau folder spam.');
+      } else {
+        setPesanError(data.error || 'Gagal mengirim kode');
+      }
+    } catch (err) {
+      setPesanError('Gagal konek ke server');
+    }
+    setLoading(false);
+  }
 
   async function resetPassword() {
     setPesanError('');
     setPesanSukses('');
 
-    if (!email || !passwordBaru || !konfirmasi) {
-      setPesanError('Semua kolom wajib diisi');
+    if (kode.length !== 6) {
+      setPesanError('Masukkan 6 digit kode dari email');
       return;
     }
-    if (!POLA_EMAIL.test(email.trim())) {
-      setPesanError('Format email tidak valid');
+    if (!passwordBaru || !konfirmasi) {
+      setPesanError('Semua kolom wajib diisi');
       return;
     }
     if (passwordBaru.length < MIN_PASSWORD) {
@@ -60,12 +102,11 @@ export default function LupaPasswordPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/auth/reset-password', {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password_baru: passwordBaru }),
+        body: JSON.stringify({ email: email.trim(), kode, password_baru: passwordBaru }),
       });
-
       const data = await response.json();
 
       if (response.ok) {
@@ -73,13 +114,23 @@ export default function LupaPasswordPage() {
         setTimeout(() => {
           router.push('/login');
         }, 1500);
-      } else {
-        setPesanError(data.error || 'Gagal mengubah password');
+        return;
       }
+      setPesanError(data.error || 'Gagal mengubah password');
     } catch (err) {
       setPesanError('Gagal konek ke server');
     }
     setLoading(false);
+  }
+
+  function gantiEmail() {
+    setLangkah(1);
+    setKode('');
+    setPasswordBaru('');
+    setKonfirmasi('');
+    setPesanError('');
+    setPesanSukses('');
+    setHitungMundur(0);
   }
 
   return (
@@ -99,7 +150,11 @@ export default function LupaPasswordPage() {
           </Link>
 
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Lupa password?</h1>
-          <p className="text-slate-600 text-base mb-6">Masukkan email Manager dan buat password baru.</p>
+          <p className="text-slate-600 text-base mb-6">
+            {langkah === 1
+              ? 'Masukkan email Manager, kami kirim kode verifikasi ke email tersebut.'
+              : 'Masukkan kode dari email dan buat password baru.'}
+          </p>
 
           {pesanError && (
             <div className="bg-red-50 border-2 border-red-200 text-red-800 text-base font-medium rounded-xl px-4 py-3 mb-5">
@@ -112,71 +167,124 @@ export default function LupaPasswordPage() {
             </div>
           )}
 
-          <div className="space-y-4 mb-6">
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@perusahaan.com"
-                className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Password Baru</label>
-              <div className="relative">
+          {langkah === 1 ? (
+            <>
+              <div className="mb-6">
+                <label className="text-sm font-semibold text-slate-700 mb-1 block">Email</label>
                 <input
-                  type={tampilPassword ? 'text' : 'password'}
-                  value={passwordBaru}
-                  onChange={(e) => setPasswordBaru(e.target.value)}
-                  placeholder={`Minimal ${MIN_PASSWORD} karakter`}
-                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
-                />
-                <button
-                  type="button"
-                  onClick={() => setTampilPassword(!tampilPassword)}
-                  aria-label={tampilPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
-                >
-                  <IconMata terlihat={tampilPassword} />
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">Konfirmasi Password</label>
-              <div className="relative">
-                <input
-                  type={tampilKonfirmasi ? 'text' : 'password'}
-                  value={konfirmasi}
-                  onChange={(e) => setKonfirmasi(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading) resetPassword();
+                    if (e.key === 'Enter' && !loading) kirimKode();
                   }}
-                  placeholder="Ulangi password baru"
-                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
+                  placeholder="nama@perusahaan.com"
+                  className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
                 />
+              </div>
+
+              <button
+                onClick={kirimKode}
+                disabled={loading}
+                className="w-full bg-[#1E3A8A] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 shadow-sm"
+              >
+                {loading ? 'Mengirim...' : 'Kirim Kode'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-2.5 mb-4">
+                <span className="text-base text-slate-800 truncate">{email}</span>
                 <button
-                  type="button"
-                  onClick={() => setTampilKonfirmasi(!tampilKonfirmasi)}
-                  aria-label={tampilKonfirmasi ? 'Sembunyikan password' : 'Tampilkan password'}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
+                  onClick={gantiEmail}
+                  className="text-sm text-[#1E3A8A] font-semibold hover:text-[#172554] shrink-0 ml-3"
                 >
-                  <IconMata terlihat={tampilKonfirmasi} />
+                  Ganti
                 </button>
               </div>
-            </div>
-          </div>
 
-          <button
-            onClick={resetPassword}
-            disabled={loading}
-            className="w-full bg-[#1E3A8A] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 shadow-sm"
-          >
-            {loading ? 'Memproses...' : 'Ubah Password'}
-          </button>
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Kode Verifikasi</label>
+                  <input
+                    value={kode}
+                    onChange={(e) => setKode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="••••••"
+                    maxLength={6}
+                    className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-3 text-2xl text-center font-bold tracking-[0.5em] text-slate-900 placeholder:text-slate-300 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
+                  />
+                  <div className="text-right mt-1.5 text-sm text-slate-500">
+                    {hitungMundur > 0 ? (
+                      <span>Kirim ulang kode dalam {hitungMundur} detik</span>
+                    ) : (
+                      <button
+                        onClick={kirimKode}
+                        disabled={loading}
+                        className="text-[#1E3A8A] font-semibold hover:text-[#172554] disabled:opacity-50"
+                      >
+                        Kirim ulang kode
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={tampilPassword ? 'text' : 'password'}
+                      value={passwordBaru}
+                      onChange={(e) => setPasswordBaru(e.target.value)}
+                      placeholder={`Minimal ${MIN_PASSWORD} karakter`}
+                      className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTampilPassword(!tampilPassword)}
+                      aria-label={tampilPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
+                    >
+                      <IconMata terlihat={tampilPassword} />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 block">Konfirmasi Password</label>
+                  <div className="relative">
+                    <input
+                      type={tampilKonfirmasi ? 'text' : 'password'}
+                      value={konfirmasi}
+                      onChange={(e) => setKonfirmasi(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !loading) resetPassword();
+                      }}
+                      placeholder="Ulangi password baru"
+                      className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTampilKonfirmasi(!tampilKonfirmasi)}
+                      aria-label={tampilKonfirmasi ? 'Sembunyikan password' : 'Tampilkan password'}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#1E3A8A]"
+                    >
+                      <IconMata terlihat={tampilKonfirmasi} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={resetPassword}
+                disabled={loading}
+                className="w-full bg-[#1E3A8A] text-white text-base font-semibold py-3 rounded-xl hover:bg-[#172E6E] transition disabled:opacity-50 shadow-sm"
+              >
+                {loading ? 'Memproses...' : 'Ubah Password'}
+              </button>
+            </>
+          )}
 
           <p className="text-center text-base text-slate-600 mt-6">
             <Link href="/login" className="text-[#1E3A8A] font-semibold hover:text-[#172554]">

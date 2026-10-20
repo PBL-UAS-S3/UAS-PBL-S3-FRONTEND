@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const MIN_PASSWORD = 8;
+
 function IconMata({ terlihat }: { terlihat: boolean }) {
   if (terlihat) {
     return (
@@ -32,18 +35,34 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function login() {
-    setLoading(true);
     setPesanError('');
+
+    if (!email.trim() || !password) {
+      setPesanError('Email dan password wajib diisi');
+      return;
+    }
+    if (password.length < MIN_PASSWORD) {
+      setPesanError(`Password minimal ${MIN_PASSWORD} karakter`);
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.perlu_verifikasi) {
+          router.push(
+            `/verifikasi-email?email=${encodeURIComponent(data.email || email.trim())}&kirim=1`
+          );
+          return;
+        }
         setPesanError(data.error || 'Login gagal');
         setLoading(false);
         return;

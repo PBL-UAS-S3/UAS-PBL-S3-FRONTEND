@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const MIN_PASSWORD = 8;
 const POLA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -56,7 +57,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nama, email: email.trim(), password, telepon }),
@@ -65,17 +66,20 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setPesanSukses('Akun berhasil dibuat! Mengarahkan ke halaman login...');
+        setPesanSukses('Akun dibuat! Kode verifikasi sudah dikirim ke email kamu...');
         setTimeout(() => {
-          router.push('/login');
-        }, 1500);
+          router.push(
+            `/verifikasi-email?email=${encodeURIComponent(data.email || email.trim())}`
+          );
+        }, 1200);
       } else {
         setPesanError(data.error || 'Registrasi gagal');
+        setLoading(false);
       }
     } catch (err) {
       setPesanError('Gagal konek ke server');
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -129,6 +133,7 @@ export default function RegisterPage() {
                 placeholder="nama@gmail.com"
                 className="w-full bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30"
               />
+              <p className="text-xs text-slate-500 mt-1">Kode verifikasi 6 digit akan dikirim ke email ini.</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-slate-700 mb-1 block">Buat Password</label>

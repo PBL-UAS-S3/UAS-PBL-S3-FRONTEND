@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { MessageSquare, Send } from 'lucide-react';
 
-const BASE_URL = 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function HubungiKamiPage() {
   const [pesan, setPesan] = useState('');
@@ -23,7 +23,7 @@ export default function HubungiKamiPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/keluhan`, {
+      const res = await fetch(`${API_URL}/keluhan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ pesan }),

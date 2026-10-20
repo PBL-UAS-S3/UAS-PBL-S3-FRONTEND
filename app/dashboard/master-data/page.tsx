@@ -27,7 +27,7 @@ type Product = {
   stok_minimum: number;
 };
 
-const BASE_URL = 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const ITEM_PER_HALAMAN = 10;
 
 const PRESET_SATUAN = [
@@ -127,7 +127,7 @@ export default function MasterDataPage() {
 
   async function fetchProducts() {
     try {
-      const res = await fetch(`${BASE_URL}/products`);
+      const res = await fetch(`${API_URL}/products`);
       const data = await res.json();
       setProducts(data);
     } catch (error) {
@@ -185,7 +185,7 @@ export default function MasterDataPage() {
       const formData = new FormData();
       formData.append('gambar', file);
 
-      const res = await fetch(`${BASE_URL}/upload`, {
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -206,7 +206,7 @@ export default function MasterDataPage() {
 
   async function simpanProduk() {
     setPesan('');
-    const url = editingId ? `${BASE_URL}/products/${editingId}` : `${BASE_URL}/products`;
+    const url = editingId ? `${API_URL}/products/${editingId}` : `${API_URL}/products`;
     const method = editingId ? 'PUT' : 'POST';
 
     const payload = {
@@ -237,7 +237,7 @@ export default function MasterDataPage() {
 
   async function hapusProduk(id: number) {
     if (!confirm('Yakin hapus produk ini?')) return;
-    await fetch(`${BASE_URL}/products/${id}`, {
+    await fetch(`${API_URL}/products/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -311,11 +311,11 @@ export default function MasterDataPage() {
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`${BASE_URL}${gambar}`}
+          src={`${API_URL}${gambar}`}
           alt=""
           style={{ width: ukuran, height: ukuran }}
           className={`rounded-xl object-cover border-2 border-slate-200 shrink-0 ${bisaDiklik ? 'cursor-zoom-in' : ''}`}
-          onClick={bisaDiklik ? () => setZoomUrl(`${BASE_URL}${gambar}`) : undefined}
+          onClick={bisaDiklik ? () => setZoomUrl(`${API_URL}${gambar}`) : undefined}
         />
       );
     }

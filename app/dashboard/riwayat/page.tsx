@@ -15,7 +15,7 @@ type Transaksi = {
   nama_staf: string;
 };
 
-const BASE_URL = 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const ITEM_PER_HALAMAN = 10;
 
 const SELECT_KELAS =
@@ -87,7 +87,7 @@ export default function RiwayatPage() {
 
   async function fetchRiwayat() {
     setLoading(true);
-    const res = await fetch(`${BASE_URL}/transactions/recent`);
+    const res = await fetch(`${API_URL}/transactions/recent`);
     const data = await res.json();
     setTransaksi(data);
     setLoading(false);
@@ -116,10 +116,10 @@ export default function RiwayatPage() {
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`${BASE_URL}${gambar}`}
+          src={`${API_URL}${gambar}`}
           alt=""
           className="w-11 h-11 rounded-xl object-cover border-2 border-slate-200 cursor-zoom-in shrink-0"
-          onClick={() => setZoomUrl(`${BASE_URL}${gambar}`)}
+          onClick={() => setZoomUrl(`${API_URL}${gambar}`)}
         />
       );
     }

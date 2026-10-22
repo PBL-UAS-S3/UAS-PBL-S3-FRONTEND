@@ -127,9 +127,20 @@ export default function MasterDataPage() {
 
   async function fetchProducts() {
     try {
-      const res = await fetch(`${API_URL}/products`);
+      const res = await fetch(`${API_URL}/products`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('nama');
+        window.location.href = '/login';
+        return;
+      }
+
       const data = await res.json();
-      setProducts(data);
+      setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Gagal mengambil data produk:', error);
     }

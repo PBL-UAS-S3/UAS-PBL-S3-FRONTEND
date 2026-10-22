@@ -54,12 +54,33 @@ export default function DashboardOverviewPage() {
 
   async function fetchData() {
     setLoading(true);
-    const [resProduk, resTransaksi] = await Promise.all([
-      fetch(`${API_URL}/products`),
-      fetch(`${API_URL}/transactions/recent`),
-    ]);
-    setProducts(await resProduk.json());
-    setTransaksi(await resTransaksi.json());
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [resProduk, resTransaksi] = await Promise.all([
+        fetch(`${API_URL}/products`, { headers }),
+        fetch(`${API_URL}/transactions/recent`, { headers }),
+      ]);
+
+      const sesiHabis = [resProduk, resTransaksi].some(
+        (r) => r.status === 401 || r.status === 403
+      );
+      if (sesiHabis) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('nama');
+        window.location.href = '/login';
+        return;
+      }
+
+      const dataProduk = await resProduk.json();
+      const dataTransaksi = await resTransaksi.json();
+      setProducts(Array.isArray(dataProduk) ? dataProduk : []);
+      setTransaksi(Array.isArray(dataTransaksi) ? dataTransaksi : []);
+    } catch (err) {
+      console.error('Gagal memuat data dashboard:', err);
+    }
     setLoading(false);
   }
 

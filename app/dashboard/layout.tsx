@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   User,
+  Users,
   Settings,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ const menuItems = [
   { href: "/dashboard/riwayat", label: "Riwayat Transaksi", Icon: History },
   { href: "/dashboard/insight", label: "AI Insight", Icon: Sparkles },
   { href: "/dashboard/po", label: "Purchase Order", Icon: ShoppingCart },
+  { href: "/dashboard/staf", label: "Staf Gudang", Icon: Users },
   { href: "/dashboard/profil", label: "Profil", Icon: User },
   { href: "/dashboard/pengaturan", label: "Pengaturan", Icon: Settings },
 ];

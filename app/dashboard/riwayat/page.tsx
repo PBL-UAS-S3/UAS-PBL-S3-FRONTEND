@@ -85,11 +85,28 @@ export default function RiwayatPage() {
   const [staffFilter, setStaffFilter] = useState('');
   const [halamanAktif, setHalamanAktif] = useState(1);
 
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
   async function fetchRiwayat() {
     setLoading(true);
-    const res = await fetch(`${API_URL}/transactions/recent`);
-    const data = await res.json();
-    setTransaksi(data);
+    try {
+      const res = await fetch(`${API_URL}/transactions/recent`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('nama');
+        window.location.href = '/login';
+        return;
+      }
+
+      const data = await res.json();
+      setTransaksi(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Gagal memuat riwayat:', err);
+    }
     setLoading(false);
   }
 

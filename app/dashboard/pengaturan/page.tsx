@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  MapPin, User, LifeBuoy, MessageSquare, FileText,
+  MapPin, User, Users, LifeBuoy, MessageSquare, FileText,
   Save, ChevronRight, Search, Loader2, Phone, Building2, StickyNote,
+  KeyRound, Copy, Check, RefreshCw,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -59,6 +60,12 @@ function KartuTautan({ href, Icon, label, desk }: { href: string; Icon: React.El
 }
 
 export default function PengaturanPage() {
+  // ---- State kode gudang ----
+  const [kodeGudang, setKodeGudang] = useState('');
+  const [kodeTersalin, setKodeTersalin] = useState(false);
+  const [membuatKode, setMembuatKode] = useState(false);
+  const [pesanKode, setPesanKode] = useState('');
+
   // ---- State alamat gudang ----
   const [namaGudang, setNamaGudang] = useState('');
   const [telepon, setTelepon] = useState('');
@@ -88,6 +95,25 @@ export default function PengaturanPage() {
   const markerInstance = useRef<any>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 0. Ambil kode gudang milik akun ini
+  useEffect(() => {
+    async function fetchGudang() {
+      try {
+        const res = await fetch(`${API_URL}/gudang/saya`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setKodeGudang(data.kode || '');
+        }
+      } catch (err) {
+        // kartu kode tetap tampil kosong kalau gagal
+      }
+    }
+
+    fetchGudang();
+  }, []);
+
   // 1. Ambil data pengaturan dari backend sekali saat halaman dibuka.
   //    Peta BELUM diinisialisasi di sini — div peta belum tentu ada di DOM
   //    selama loadingAwal masih true (lihat JSX di bawah).
@@ -95,7 +121,9 @@ export default function PengaturanPage() {
     async function fetchPengaturan() {
       setLoadingAwal(true);
       try {
-        const res = await fetch(`${API_URL}/pengaturan`);
+        const res = await fetch(`${API_URL}/pengaturan`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.ok) {
           const data = await res.json();
           setNamaGudang(data.nama_gudang || '');
@@ -180,6 +208,45 @@ export default function PengaturanPage() {
       }
     };
   }, [loadingAwal]);
+
+  async function salinKode() {
+    if (!kodeGudang) return;
+    setPesanKode('');
+    try {
+      await navigator.clipboard.writeText(kodeGudang);
+      setKodeTersalin(true);
+      setTimeout(() => setKodeTersalin(false), 2000);
+    } catch (err) {
+      setPesanKode('Gagal menyalin otomatis, salin manual dari kotak kode.');
+    }
+  }
+
+  async function buatKodeBaru() {
+    if (
+      !confirm(
+        'Buat kode gudang baru? Kode lama langsung tidak berlaku. Staf yang sudah tergabung tidak terpengaruh.'
+      )
+    )
+      return;
+
+    setMembuatKode(true);
+    setPesanKode('');
+    try {
+      const res = await fetch(`${API_URL}/gudang/kode-baru`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setKodeGudang(data.kode);
+      } else {
+        setPesanKode(data.error || 'Gagal membuat kode baru');
+      }
+    } catch (err) {
+      setPesanKode('Tidak dapat terhubung ke server');
+    }
+    setMembuatKode(false);
+  }
 
   function handleQueryChange(nilai: string) {
     setQueryCari(nilai);
@@ -274,7 +341,42 @@ export default function PengaturanPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Pengaturan</h1>
-          <p className="text-slate-600 text-base">Kelola alamat gudang dan bantuan</p>
+          <p className="text-slate-600 text-base">Kelola kode gudang, alamat gudang, dan bantuan</p>
+        </div>
+
+        {/* ===================== Kode Gudang ===================== */}
+        <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+            <KeyRound size={20} className="text-[#1E3A8A]" /> Kode Gudang
+          </h2>
+          <p className="text-sm text-slate-500 mb-4">
+            Bagikan kode ini ke staf gudang. Staf memasukkannya saat mendaftar di aplikasi mobile supaya
+            tergabung ke gudang kamu. Kalau kode bocor, buat kode baru — kode lama langsung tidak berlaku.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="px-5 py-3 rounded-xl bg-[#E8EEFC] border-2 border-[#1E3A8A]/30 text-2xl font-bold tracking-[0.3em] text-[#1E3A8A] font-mono min-w-[190px] text-center">
+              {kodeGudang || '------'}
+            </div>
+            <button
+              onClick={salinKode}
+              disabled={!kodeGudang}
+              className="flex items-center gap-2 border-2 border-[#1E3A8A] text-[#1E3A8A] text-base font-semibold px-4 py-2.5 rounded-xl hover:bg-[#E8EEFC] transition disabled:opacity-50"
+            >
+              {kodeTersalin ? <Check size={18} /> : <Copy size={18} />}
+              {kodeTersalin ? 'Tersalin' : 'Salin Kode'}
+            </button>
+            <button
+              onClick={buatKodeBaru}
+              disabled={membuatKode}
+              className="flex items-center gap-2 border-2 border-slate-300 text-slate-800 text-base font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
+            >
+              <RefreshCw size={18} className={membuatKode ? 'animate-spin' : ''} />
+              {membuatKode ? 'Membuat...' : 'Buat Kode Baru'}
+            </button>
+          </div>
+
+          {pesanKode && <p className="text-red-700 text-sm font-semibold mt-3">{pesanKode}</p>}
         </div>
 
         {/* ===================== Alamat Gudang ===================== */}
@@ -283,9 +385,8 @@ export default function PengaturanPage() {
             <MapPin size={20} className="text-[#1E3A8A]" /> Alamat Gudang
           </h2>
           <p className="text-sm text-slate-500 mb-5">
-            Satu alamat untuk seluruh sistem — berlaku sama untuk semua akun Manager dan ditampilkan juga
-            ke semua akun Staf di aplikasi mobile. Cari alamat di kolom pencarian, lalu geser pin di peta
-            untuk mengoreksi titik persis.
+            Alamat ini berlaku untuk gudang kamu dan ditampilkan juga ke semua staf di aplikasi mobile.
+            Cari alamat di kolom pencarian, lalu geser pin di peta untuk mengoreksi titik persis.
           </p>
 
           {loadingAwal ? (
@@ -423,6 +524,7 @@ export default function PengaturanPage() {
         {/* ===================== Tautan lain ===================== */}
         <h2 className="text-base font-bold text-slate-700 uppercase tracking-wide mb-3">Akun & Bantuan</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <KartuTautan href="/dashboard/staf" Icon={Users} label="Kelola Staf" desk="Lihat dan keluarkan staf yang tergabung di gudang kamu" />
           <KartuTautan href="/dashboard/profil" Icon={User} label="Informasi Profil" desk="Ubah nama, nomor telepon, dan password" />
           <KartuTautan href="/dashboard/bantuan" Icon={LifeBuoy} label="Pusat Bantuan (FAQ)" desk="Panduan penggunaan dan solusi masalah umum" />
           <KartuTautan href="/dashboard/hubungi-kami" Icon={MessageSquare} label="Hubungi Kami" desk="Laporkan kendala atau bug ke tim kami" />

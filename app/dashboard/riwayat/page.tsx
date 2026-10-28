@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { Package, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Alert } from '../../components/alert';
+
+type TipeTransaksi = 'in' | 'out' | 'rusak' | 'buang_rusak' | 'pulih_rusak';
 
 type Transaksi = {
   id: number;
   nama: string;
   sku: string;
   gambar: string | null;
-  tipe: 'in' | 'out';
+  tipe: TipeTransaksi;
   jumlah: number;
   catatan: string | null;
   created_at: string;
@@ -20,6 +23,14 @@ const ITEM_PER_HALAMAN = 10;
 
 const SELECT_KELAS =
   'bg-white border-2 border-slate-300 rounded-xl px-4 py-2.5 text-base text-slate-900 focus:outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/30';
+
+const INFO_TIPE: Record<TipeTransaksi, { label: string; kelas: string; alur: string | null }> = {
+  in: { label: 'Masuk', kelas: 'bg-emerald-100 text-emerald-800 border-emerald-300', alur: null },
+  out: { label: 'Keluar', kelas: 'bg-red-100 text-red-800 border-red-300', alur: null },
+  rusak: { label: 'Pisah Rusak', kelas: 'bg-violet-100 text-violet-800 border-violet-300', alur: 'Layak → Rusak' },
+  buang_rusak: { label: 'Afkir', kelas: 'bg-slate-200 text-slate-800 border-slate-400', alur: 'Rusak → Dibuang' },
+  pulih_rusak: { label: 'Dipulihkan', kelas: 'bg-sky-100 text-sky-800 border-sky-300', alur: 'Rusak → Layak' },
+};
 
 function Pagination({
   halamanAktif,
@@ -78,6 +89,7 @@ function Pagination({
 export default function RiwayatPage() {
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
   const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState('');
   const [zoomUrl, setZoomUrl] = useState<string | null>(null);
 
   const [searchText, setSearchText] = useState('');
@@ -89,6 +101,7 @@ export default function RiwayatPage() {
 
   async function fetchRiwayat() {
     setLoading(true);
+    setGalat('');
     try {
       const res = await fetch(`${API_URL}/transactions/recent`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -103,9 +116,14 @@ export default function RiwayatPage() {
       }
 
       const data = await res.json();
-      setTransaksi(Array.isArray(data) ? data : []);
+      if (!res.ok) {
+        setGalat(data.error || 'Gagal memuat riwayat transaksi');
+      } else {
+        setTransaksi(Array.isArray(data) ? data : []);
+      }
     } catch (err) {
       console.error('Gagal memuat riwayat:', err);
+      setGalat('Gagal terhubung ke server. Periksa koneksi lalu coba lagi.');
     }
     setLoading(false);
   }
@@ -123,9 +141,23 @@ export default function RiwayatPage() {
     return d.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
-  function tipeBadge(tipe: 'in' | 'out') {
-    if (tipe === 'in') return <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">Masuk</span>;
-    return <span className="bg-red-100 text-red-800 border border-red-300 text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">Keluar</span>;
+  function infoTipe(tipe: string) {
+    return (
+      INFO_TIPE[tipe as TipeTransaksi] ?? {
+        label: tipe,
+        kelas: 'bg-slate-100 text-slate-800 border-slate-300',
+        alur: null,
+      }
+    );
+  }
+
+  function tipeBadge(tipe: string) {
+    const info = infoTipe(tipe);
+    return (
+      <span className={`${info.kelas} border text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap`}>
+        {info.label}
+      </span>
+    );
   }
 
   function Thumbnail({ gambar }: { gambar: string | null }) {
@@ -163,8 +195,17 @@ export default function RiwayatPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Riwayat Transaksi</h1>
-          <p className="text-slate-600 text-base">50 transaksi stok masuk/keluar terbaru</p>
+          <p className="text-slate-600 text-base">50 transaksi stok terbaru, termasuk pemisahan barang rusak</p>
         </div>
+
+        {galat && (
+          <Alert jenis="error" onClose={() => setGalat('')} className="mb-4">
+            {galat}{' '}
+            <button onClick={fetchRiwayat} className="font-bold underline">
+              Coba lagi
+            </button>
+          </Alert>
+        )}
 
         <div className="flex flex-col md:flex-row gap-3 mb-4">
           <input
@@ -177,6 +218,9 @@ export default function RiwayatPage() {
             <option value="">Semua Tipe</option>
             <option value="in">Masuk</option>
             <option value="out">Keluar</option>
+            <option value="rusak">Pisah Rusak</option>
+            <option value="buang_rusak">Afkir</option>
+            <option value="pulih_rusak">Dipulihkan</option>
           </select>
           <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className={SELECT_KELAS}>
             <option value="">Semua Staf</option>
@@ -213,7 +257,12 @@ export default function RiwayatPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">{tipeBadge(t.tipe)}</td>
-                    <td className="px-5 py-4 font-bold text-slate-900 text-base whitespace-nowrap">{t.jumlah}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="font-bold text-slate-900 text-base">{t.jumlah}</div>
+                      {infoTipe(t.tipe).alur && (
+                        <div className="text-xs text-slate-500 mt-0.5">{infoTipe(t.tipe).alur}</div>
+                      )}
+                    </td>
                     <td className="px-5 py-4 text-slate-800 text-base whitespace-nowrap">{t.nama_staf}</td>
                     <td className="px-5 py-4 text-slate-700 text-base">{t.catatan || '-'}</td>
                   </tr>

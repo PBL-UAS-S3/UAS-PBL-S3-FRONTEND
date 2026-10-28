@@ -7,6 +7,7 @@ import {
   Save, ChevronRight, Search, Loader2, Phone, Building2, StickyNote,
   KeyRound, Copy, Check, RefreshCw,
 } from 'lucide-react';
+import { Alert, DialogKonfirmasi, useNotifikasi } from '../../components/alert';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -64,7 +65,7 @@ export default function PengaturanPage() {
   const [kodeGudang, setKodeGudang] = useState('');
   const [kodeTersalin, setKodeTersalin] = useState(false);
   const [membuatKode, setMembuatKode] = useState(false);
-  const [pesanKode, setPesanKode] = useState('');
+  const [konfirmasiKode, setKonfirmasiKode] = useState(false);
 
   // ---- State alamat gudang ----
   const [namaGudang, setNamaGudang] = useState('');
@@ -80,13 +81,22 @@ export default function PengaturanPage() {
 
   const [loadingAwal, setLoadingAwal] = useState(true);
   const [savingAlamat, setSavingAlamat] = useState(false);
-  const [pesanAlamat, setPesanAlamat] = useState('');
-  const [suksesAlamat, setSuksesAlamat] = useState('');
 
   // ---- State pencarian alamat ----
   const [queryCari, setQueryCari] = useState('');
   const [hasilCari, setHasilCari] = useState<HasilPencarian[]>([]);
   const [sedangCari, setSedangCari] = useState(false);
+
+  const {
+    notif: notifKode,
+    tampil: tampilKode,
+    tutup: tutupKode,
+  } = useNotifikasi();
+  const {
+    notif: notifAlamat,
+    tampil: tampilAlamatNotif,
+    tutup: tutupAlamat,
+  } = useNotifikasi();
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -94,6 +104,15 @@ export default function PengaturanPage() {
   const mapInstance = useRef<any>(null);
   const markerInstance = useRef<any>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const alertAlamatRef = useRef<HTMLDivElement>(null);
+
+  // Tampilkan alert alamat lalu gulir ke sana supaya tidak terlewat
+  function tampilAlamat(jenis: 'error' | 'sukses', pesan: string) {
+    tampilAlamatNotif(jenis, pesan);
+    setTimeout(() => {
+      alertAlamatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
 
   // 0. Ambil kode gudang milik akun ini
   useEffect(() => {
@@ -115,7 +134,7 @@ export default function PengaturanPage() {
   }, []);
 
   // 1. Ambil data pengaturan dari backend sekali saat halaman dibuka.
-  //    Peta BELUM diinisialisasi di sini — div peta belum tentu ada di DOM
+  //    Peta BELUM diinisialisasi di sini, div peta belum tentu ada di DOM
   //    selama loadingAwal masih true (lihat JSX di bawah).
   useEffect(() => {
     async function fetchPengaturan() {
@@ -141,7 +160,7 @@ export default function PengaturanPage() {
           }
         }
       } catch (err) {
-        setPesanAlamat('Tidak dapat terhubung ke server');
+        tampilAlamatNotif('error', 'Tidak dapat terhubung ke server');
       } finally {
         setLoadingAwal(false);
       }
@@ -211,26 +230,17 @@ export default function PengaturanPage() {
 
   async function salinKode() {
     if (!kodeGudang) return;
-    setPesanKode('');
     try {
       await navigator.clipboard.writeText(kodeGudang);
       setKodeTersalin(true);
       setTimeout(() => setKodeTersalin(false), 2000);
     } catch (err) {
-      setPesanKode('Gagal menyalin otomatis, salin manual dari kotak kode.');
+      tampilKode('error', 'Gagal menyalin otomatis, salin manual dari kotak kode.');
     }
   }
 
   async function buatKodeBaru() {
-    if (
-      !confirm(
-        'Buat kode gudang baru? Kode lama langsung tidak berlaku. Staf yang sudah tergabung tidak terpengaruh.'
-      )
-    )
-      return;
-
     setMembuatKode(true);
-    setPesanKode('');
     try {
       const res = await fetch(`${API_URL}/gudang/kode-baru`, {
         method: 'POST',
@@ -239,13 +249,15 @@ export default function PengaturanPage() {
       const data = await res.json();
       if (res.ok) {
         setKodeGudang(data.kode);
+        tampilKode('sukses', `Kode gudang diganti menjadi ${data.kode}. Kode lama tidak berlaku lagi.`);
       } else {
-        setPesanKode(data.error || 'Gagal membuat kode baru');
+        tampilKode('error', data.error || 'Gagal membuat kode baru');
       }
     } catch (err) {
-      setPesanKode('Tidak dapat terhubung ke server');
+      tampilKode('error', 'Tidak dapat terhubung ke server');
     }
     setMembuatKode(false);
+    setKonfirmasiKode(false);
   }
 
   function handleQueryChange(nilai: string) {
@@ -313,8 +325,6 @@ export default function PengaturanPage() {
 
   async function simpanAlamat() {
     setSavingAlamat(true);
-    setPesanAlamat('');
-    setSuksesAlamat('');
     try {
       const res = await fetch(`${API_URL}/pengaturan`, {
         method: 'PUT',
@@ -326,12 +336,12 @@ export default function PengaturanPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSuksesAlamat('Alamat gudang berhasil disimpan');
+        tampilAlamat('sukses', 'Alamat gudang berhasil disimpan');
       } else {
-        setPesanAlamat(data.error || 'Gagal menyimpan');
+        tampilAlamat('error', data.error || 'Gagal menyimpan');
       }
     } catch (err) {
-      setPesanAlamat('Tidak dapat terhubung ke server');
+      tampilAlamat('error', 'Tidak dapat terhubung ke server');
     }
     setSavingAlamat(false);
   }
@@ -350,9 +360,16 @@ export default function PengaturanPage() {
             <KeyRound size={20} className="text-[#1E3A8A]" /> Kode Gudang
           </h2>
           <p className="text-sm text-slate-500 mb-4">
-            Bagikan kode ini ke staf gudang. Staf memasukkannya saat mendaftar di aplikasi mobile supaya
-            tergabung ke gudang kamu. Kalau kode bocor, buat kode baru — kode lama langsung tidak berlaku.
+            Bagikan kode ini ke staf gudang. Staf mendaftar dulu di aplikasi mobile, lalu memasukkan kode ini di
+            halaman Gudang Saya untuk mengajukan bergabung, dan kamu setujui di menu Staf Gudang. Kalau kode
+            bocor, buat kode baru. Kode lama langsung tidak berlaku, staf yang sudah tergabung tidak terpengaruh.
           </p>
+
+          {notifKode && (
+            <Alert jenis={notifKode.jenis} onClose={tutupKode} className="mb-4">
+              {notifKode.pesan}
+            </Alert>
+          )}
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="px-5 py-3 rounded-xl bg-[#E8EEFC] border-2 border-[#1E3A8A]/30 text-2xl font-bold tracking-[0.3em] text-[#1E3A8A] font-mono min-w-[190px] text-center">
@@ -367,7 +384,7 @@ export default function PengaturanPage() {
               {kodeTersalin ? 'Tersalin' : 'Salin Kode'}
             </button>
             <button
-              onClick={buatKodeBaru}
+              onClick={() => setKonfirmasiKode(true)}
               disabled={membuatKode}
               className="flex items-center gap-2 border-2 border-slate-300 text-slate-800 text-base font-semibold px-4 py-2.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
             >
@@ -375,8 +392,6 @@ export default function PengaturanPage() {
               {membuatKode ? 'Membuat...' : 'Buat Kode Baru'}
             </button>
           </div>
-
-          {pesanKode && <p className="text-red-700 text-sm font-semibold mt-3">{pesanKode}</p>}
         </div>
 
         {/* ===================== Alamat Gudang ===================== */}
@@ -388,6 +403,14 @@ export default function PengaturanPage() {
             Alamat ini berlaku untuk gudang kamu dan ditampilkan juga ke semua staf di aplikasi mobile.
             Cari alamat di kolom pencarian, lalu geser pin di peta untuk mengoreksi titik persis.
           </p>
+
+          <div ref={alertAlamatRef}>
+            {notifAlamat && (
+              <Alert jenis={notifAlamat.jenis} onClose={tutupAlamat} className="mb-5">
+                {notifAlamat.pesan}
+              </Alert>
+            )}
+          </div>
 
           {loadingAwal ? (
             <div className="flex items-center gap-2 py-10 justify-center text-slate-500">
@@ -490,9 +513,6 @@ export default function PengaturanPage() {
                   />
                 </Field>
 
-                {pesanAlamat && <p className="text-red-700 text-sm font-semibold">{pesanAlamat}</p>}
-                {suksesAlamat && <p className="text-emerald-700 text-sm font-semibold">{suksesAlamat}</p>}
-
                 <button
                   onClick={simpanAlamat}
                   disabled={savingAlamat}
@@ -524,13 +544,24 @@ export default function PengaturanPage() {
         {/* ===================== Tautan lain ===================== */}
         <h2 className="text-base font-bold text-slate-700 uppercase tracking-wide mb-3">Akun & Bantuan</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <KartuTautan href="/dashboard/staf" Icon={Users} label="Kelola Staf" desk="Lihat dan keluarkan staf yang tergabung di gudang kamu" />
+          <KartuTautan href="/dashboard/staf" Icon={Users} label="Kelola Staf" desk="Setujui permintaan bergabung dan kelola staf gudang kamu" />
           <KartuTautan href="/dashboard/profil" Icon={User} label="Informasi Profil" desk="Ubah nama, nomor telepon, dan password" />
           <KartuTautan href="/dashboard/bantuan" Icon={LifeBuoy} label="Pusat Bantuan (FAQ)" desk="Panduan penggunaan dan solusi masalah umum" />
           <KartuTautan href="/dashboard/hubungi-kami" Icon={MessageSquare} label="Hubungi Kami" desk="Laporkan kendala atau bug ke tim kami" />
           <KartuTautan href="/dashboard/ketentuan" Icon={FileText} label="Ketentuan & Kebijakan" desk="Kebijakan Privasi dan Syarat Ketentuan Layanan" />
         </div>
       </div>
+
+      <DialogKonfirmasi
+        buka={konfirmasiKode}
+        judul="Buat kode gudang baru?"
+        pesan="Kode lama langsung tidak berlaku. Staf yang sudah tergabung tidak terpengaruh, tapi staf baru harus memakai kode yang baru."
+        labelYa="Ya, buat kode baru"
+        bahaya={false}
+        memproses={membuatKode}
+        onYa={buatKodeBaru}
+        onBatal={() => !membuatKode && setKonfirmasiKode(false)}
+      />
     </main>
   );
 }

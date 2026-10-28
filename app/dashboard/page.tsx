@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Package, AlertTriangle, RefreshCw, Wallet, Sparkles, ArrowRight, PartyPopper } from 'lucide-react';
+import { Alert } from '../components/alert';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -14,6 +15,7 @@ type Product = {
   satuan: string | null;
   harga: number;
   stok_saat_ini: number;
+  stok_rusak: number;
   stok_minimum: number;
 };
 
@@ -50,10 +52,12 @@ export default function DashboardOverviewPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
   const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState('');
   const [nama, setNama] = useState('');
 
   async function fetchData() {
     setLoading(true);
+    setGalat('');
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
@@ -80,6 +84,7 @@ export default function DashboardOverviewPage() {
       setTransaksi(Array.isArray(dataTransaksi) ? dataTransaksi : []);
     } catch (err) {
       console.error('Gagal memuat data dashboard:', err);
+      setGalat('Gagal memuat data dashboard. Periksa koneksi ke server.');
     }
     setLoading(false);
   }
@@ -93,11 +98,15 @@ export default function DashboardOverviewPage() {
   const stokMenipisList = products.filter((p) => p.stok_saat_ini <= p.stok_minimum);
   const stokMenipis = stokMenipisList.length;
 
+  const produkRusak = products.filter((p) => Number(p.stok_rusak ?? 0) > 0).length;
+  const totalUnitRusak = products.reduce((total, p) => total + Number(p.stok_rusak ?? 0), 0);
+
   const hariIni = new Date().toDateString();
   const transaksiHariIni = transaksi.filter(
     (t) => new Date(t.created_at).toDateString() === hariIni
   ).length;
 
+  // Nilai stok hanya menghitung stok layak
   const totalStokNilai = products.reduce(
     (total, p) => total + p.stok_saat_ini * Number(p.harga || 0),
     0
@@ -142,8 +151,17 @@ export default function DashboardOverviewPage() {
           </div>
         </div>
 
+        {galat && (
+          <Alert jenis="error" onClose={() => setGalat('')} className="mb-6">
+            {galat}{' '}
+            <button onClick={fetchData} className="font-bold underline">
+              Coba lagi
+            </button>
+          </Alert>
+        )}
+
         <h2 className="text-base font-bold text-slate-700 uppercase tracking-wide mb-3">Inventory Summary</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
           <KartuRingkasan label="Total Produk" nilai={loading ? '-' : totalProduk} Icon={Package} />
           <KartuRingkasan
             label="Stok Menipis"
@@ -158,12 +176,25 @@ export default function DashboardOverviewPage() {
             <div className="w-12 h-12 rounded-xl bg-white/25 flex items-center justify-center mb-3">
               <Wallet size={22} />
             </div>
-            <p className="text-sm font-semibold text-white mb-1">Total Stok Nilai</p>
+            <p className="text-sm font-semibold text-white mb-1">Nilai Stok Layak</p>
             <p className={`font-bold truncate ${ukuranFontNilai(teksNilai)}`} title={teksNilai}>
               {teksNilai}
             </p>
           </div>
         </div>
+
+        {!loading && totalUnitRusak > 0 && (
+          <Alert
+            jenis="rusak"
+            judul={`${totalUnitRusak} unit barang rusak tersortir`}
+            className="mb-8"
+          >
+            Tersebar di {produkRusak} produk dan tidak dihitung sebagai stok layak.{' '}
+            <Link href="/dashboard/barang-rusak" className="font-bold underline">
+              Kelola barang rusak
+            </Link>
+          </Alert>
+        )}
 
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={18} className="text-[#1E3A8A]" />
@@ -181,7 +212,7 @@ export default function DashboardOverviewPage() {
                 <tr>
                   <th className="px-5 py-3.5 font-bold">SKU</th>
                   <th className="px-5 py-3.5 font-bold">Nama Produk</th>
-                  <th className="px-5 py-3.5 font-bold">Stok</th>
+                  <th className="px-5 py-3.5 font-bold">Stok Layak</th>
                   <th className="px-5 py-3.5 font-bold">Min. Stok</th>
                   <th className="px-5 py-3.5 font-bold">Status</th>
                 </tr>
@@ -201,11 +232,19 @@ export default function DashboardOverviewPage() {
                 )}
                 {stokMenipisList.slice(0, 5).map((p) => {
                   const isHabis = p.stok_saat_ini <= 0;
+                  const rusak = Number(p.stok_rusak ?? 0);
                   return (
                     <tr key={p.id} className="border-b border-slate-200 hover:bg-[#F4F7FF] transition">
                       <td className="px-5 py-4 text-slate-600 font-mono text-base">{p.sku}</td>
                       <td className="px-5 py-4 font-semibold text-slate-900 text-base">{p.nama}</td>
-                      <td className="px-5 py-4 font-bold text-slate-900 text-base">{p.stok_saat_ini}</td>
+                      <td className="px-5 py-4">
+                        <div className="font-bold text-slate-900 text-base">{p.stok_saat_ini}</div>
+                        {rusak > 0 && (
+                          <span className="inline-block mt-1 bg-violet-100 text-violet-800 border border-violet-300 text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                            {rusak} rusak
+                          </span>
+                        )}
+                      </td>
                       <td className="px-5 py-4 text-slate-700 text-base">{p.stok_minimum}</td>
                       <td className="px-5 py-4">
                         {isHabis ? (

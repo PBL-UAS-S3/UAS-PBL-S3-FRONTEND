@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
+  AlertTriangle,
   History,
   Sparkles,
   ShoppingCart,
@@ -20,6 +21,7 @@ import {
 const menuItems = [
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/dashboard/master-data", label: "Master Data", Icon: Package },
+  { href: "/dashboard/barang-rusak", label: "Barang Rusak", Icon: AlertTriangle },
   { href: "/dashboard/riwayat", label: "Riwayat Transaksi", Icon: History },
   { href: "/dashboard/insight", label: "AI Insight", Icon: Sparkles },
   { href: "/dashboard/po", label: "Purchase Order", Icon: ShoppingCart },

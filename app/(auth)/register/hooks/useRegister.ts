@@ -14,11 +14,19 @@ export function useRegister() {
   const [telepon, setTelepon] = useState('');
   const [pesanError, setPesanError] = useState('');
   const [pesanSukses, setPesanSukses] = useState('');
+  const [emailBermasalah, setEmailBermasalah] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Mengetik ulang email menghapus tanda merah di kolomnya
+  function ubahEmail(v: string) {
+    setEmail(v);
+    if (emailBermasalah) setEmailBermasalah(false);
+  }
 
   async function submit() {
     setPesanError('');
     setPesanSukses('');
+    setEmailBermasalah(false);
 
     if (!nama.trim() || !email.trim() || !password) {
       setPesanError('Nama, email, dan password wajib diisi');
@@ -26,6 +34,7 @@ export function useRegister() {
     }
     if (!emailValid(email)) {
       setPesanError('Format email tidak valid. Gunakan email aktif, contoh: nama@gmail.com');
+      setEmailBermasalah(true);
       return;
     }
     if (password.length < MIN_PASSWORD) {
@@ -51,14 +60,16 @@ export function useRegister() {
     }
 
     setPesanError(res.data.error || 'Registrasi gagal');
+    if (res.data.kode === 'email_tidak_ada') setEmailBermasalah(true);
     setLoading(false);
   }
 
   return {
     nama, setNama,
-    email, setEmail,
+    email, setEmail: ubahEmail,
     password, setPassword,
     telepon, setTelepon,
+    emailBermasalah,
     pesanError, pesanSukses, loading, submit,
   };
 }

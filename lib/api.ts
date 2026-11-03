@@ -14,6 +14,9 @@ type Opsi = {
   // true untuk endpoint tanpa login (login, daftar, lupa password):
   // tidak membawa token dan 401/403 tidak dianggap sesi habis
   publik?: boolean;
+  // true kalau 401/403 dari endpoint ini berarti error biasa (misalnya "password lama salah"),
+  // bukan sesi habis. Token tetap dikirim, tapi tidak dialihkan ke halaman login.
+  abaikanSesiHabis?: boolean;
 };
 
 // Satu pintu untuk semua panggilan ke backend:
@@ -41,7 +44,8 @@ export async function api<T = any>(path: string, opsi: Opsi = {}): Promise<Hasil
       body,
     });
 
-    if (!opsi.publik && (res.status === 401 || res.status === 403)) {
+    const cekSesi = !opsi.publik && !opsi.abaikanSesiHabis;
+    if (cekSesi && (res.status === 401 || res.status === 403)) {
       keLogin();
       return {
         ok: false,

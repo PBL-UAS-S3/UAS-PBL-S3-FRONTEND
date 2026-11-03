@@ -8,12 +8,15 @@ export function Pagination({
   onGanti,
   totalData,
   perHalaman = 10,
+  garisAtas = true,
 }: {
   halamanAktif: number;
   totalHalaman: number;
   onGanti: (halaman: number) => void;
   totalData: number;
   perHalaman?: number;
+  // false kalau Pagination ditaruh di dalam kartu sendiri (tanpa garis pemisah di atas)
+  garisAtas?: boolean;
 }) {
   if (totalHalaman <= 1) return null;
 
@@ -21,7 +24,11 @@ export function Pagination({
   const akhir = Math.min(halamanAktif * perHalaman, totalData);
 
   return (
-    <div className="px-5 py-3 border-t-2 border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div
+      className={`px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 ${
+        garisAtas ? 'border-t-2 border-slate-100' : ''
+      }`}
+    >
       <p className="text-sm text-slate-600">
         Menampilkan <b className="text-slate-800">{awal}–{akhir}</b> dari{' '}
         <b className="text-slate-800">{totalData}</b> data

@@ -10,6 +10,7 @@ type Props = {
   setNama: (v: string) => void;
   email: string;
   setEmail: (v: string) => void;
+  emailBermasalah: boolean;
   password: string;
   setPassword: (v: string) => void;
   telepon: string;
@@ -20,7 +21,7 @@ type Props = {
 
 export function FormRegister({
   nama, setNama,
-  email, setEmail,
+  email, setEmail, emailBermasalah,
   password, setPassword,
   telepon, setTelepon,
   loading, onSubmit,
@@ -35,6 +36,7 @@ export function FormRegister({
           value={email}
           onChange={setEmail}
           placeholder="nama@gmail.com"
+          galat={emailBermasalah}
           bantuan="Kode verifikasi 6 digit akan dikirim ke email ini."
         />
         <FieldPassword
@@ -51,7 +53,12 @@ export function FormRegister({
         />
       </div>
 
-      <TombolAuth label="Buat Akun" labelLoading="Memproses..." loading={loading} onClick={onSubmit} />
+      <TombolAuth
+        label="Buat Akun"
+        labelLoading="Memeriksa email..."
+        loading={loading}
+        onClick={onSubmit}
+      />
     </>
   );
 }

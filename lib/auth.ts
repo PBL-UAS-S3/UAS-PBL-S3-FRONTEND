@@ -19,6 +19,11 @@ export function simpanSesi(sesi: Sesi) {
   localStorage.setItem('nama', sesi.nama);
 }
 
+// Dipakai setelah profil diubah supaya nama di sidebar ikut berganti
+export function ubahNamaSesi(nama: string) {
+  localStorage.setItem('nama', nama);
+}
+
 export function hapusSesi() {
   localStorage.removeItem('token');
   localStorage.removeItem('role');

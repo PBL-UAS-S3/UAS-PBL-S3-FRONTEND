@@ -2,58 +2,26 @@
 
 import { useState } from 'react';
 import { FileText } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { TabSwitch } from '@/components/ui/TabSwitch';
+import { DaftarPasal } from './components/DaftarPasal';
+import { KEBIJAKAN_PRIVASI, OPSI_TAB, SYARAT_KETENTUAN, type TabKetentuan } from './constants';
 
 export default function KetentuanPage() {
-  const [tab, setTab] = useState<'privasi' | 'syarat'>('privasi');
+  const [tab, setTab] = useState<TabKetentuan>('privasi');
 
   return (
     <main className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <FileText size={28} className="text-[#1E3A8A]" /> Ketentuan & Kebijakan
-          </h1>
-          <p className="text-slate-600 text-base">
-            Dokumen ini adalah contoh placeholder untuk keperluan tugas, belum ditinjau oleh ahli hukum.
-          </p>
-        </div>
+        <PageHeader
+          Ikon={FileText}
+          judul="Ketentuan & Kebijakan"
+          deskripsi="Dokumen ini adalah contoh placeholder untuk keperluan tugas, belum ditinjau oleh ahli hukum."
+        />
 
-        <div className="inline-flex bg-white border-2 border-slate-200 rounded-xl p-1 mb-5">
-          <button
-            onClick={() => setTab('privasi')}
-            className={`px-4 py-2 rounded-lg text-base font-semibold transition ${
-              tab === 'privasi' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-slate-700 hover:bg-[#E8EEFC]'
-            }`}
-          >
-            Kebijakan Privasi
-          </button>
-          <button
-            onClick={() => setTab('syarat')}
-            className={`px-4 py-2 rounded-lg text-base font-semibold transition ${
-              tab === 'syarat' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-slate-700 hover:bg-[#E8EEFC]'
-            }`}
-          >
-            Syarat Ketentuan
-          </button>
-        </div>
+        <TabSwitch opsi={OPSI_TAB} nilai={tab} onGanti={setTab} className="mb-5" />
 
-        <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm p-6 space-y-4 text-base text-slate-700 leading-relaxed">
-          {tab === 'privasi' ? (
-            <>
-              <p><b className="text-slate-900">1. Data yang Dikumpulkan.</b> Stockin menyimpan data akun (nama, email, nomor telepon), data produk, dan riwayat transaksi gudang yang kamu masukkan ke dalam sistem.</p>
-              <p><b className="text-slate-900">2. Penggunaan Data.</b> Data digunakan untuk menjalankan fitur aplikasi, termasuk analisis AI Insight untuk rekomendasi restock. Data tidak dibagikan ke pihak ketiga di luar kebutuhan sistem (seperti Gemini API untuk analisis AI).</p>
-              <p><b className="text-slate-900">3. Keamanan Data.</b> Password disimpan dalam bentuk terenkripsi (hash), dan akses ke data dibatasi berdasarkan peran (Manager/Staf).</p>
-              <p><b className="text-slate-900">4. Perubahan Kebijakan.</b> Kebijakan ini dapat berubah sewaktu-waktu sesuai kebutuhan pengembangan aplikasi.</p>
-            </>
-          ) : (
-            <>
-              <p><b className="text-slate-900">1. Penggunaan Layanan.</b> Aplikasi ini disediakan untuk membantu pengelolaan inventori gudang. Akun Manager bertanggung jawab atas keakuratan data yang dimasukkan.</p>
-              <p><b className="text-slate-900">2. Peran Pengguna.</b> Akun Manager hanya dapat diakses lewat web, dan akun Staf Gudang hanya dapat diakses lewat aplikasi mobile.</p>
-              <p><b className="text-slate-900">3. Rekomendasi AI.</b> Rekomendasi restock dari AI bersifat saran berdasarkan data historis, keputusan akhir pembelian tetap berada di tangan Manager.</p>
-              <p><b className="text-slate-900">4. Batasan Tanggung Jawab.</b> Pengembang tidak bertanggung jawab atas kerugian yang timbul dari kesalahan input data oleh pengguna.</p>
-            </>
-          )}
-        </div>
+        <DaftarPasal pasal={tab === 'privasi' ? KEBIJAKAN_PRIVASI : SYARAT_KETENTUAN} />
       </div>
     </main>
   );

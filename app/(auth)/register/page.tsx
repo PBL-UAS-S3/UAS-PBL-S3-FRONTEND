@@ -28,6 +28,7 @@ export default function RegisterPage() {
         setNama={r.setNama}
         email={r.email}
         setEmail={r.setEmail}
+        emailBermasalah={r.emailBermasalah}
         password={r.password}
         setPassword={r.setPassword}
         telepon={r.telepon}

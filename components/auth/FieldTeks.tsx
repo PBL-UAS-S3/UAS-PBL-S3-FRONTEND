@@ -1,6 +1,6 @@
 'use client';
 
-import { INPUT_KELAS } from '@/lib/ui';
+import { INPUT_GALAT_KELAS, INPUT_KELAS } from '@/lib/ui';
 
 export function FieldTeks({
   label,
@@ -11,6 +11,7 @@ export function FieldTeks({
   bantuan,
   onEnter,
   autoComplete,
+  galat = false,
 }: {
   label: string;
   value: string;
@@ -20,6 +21,7 @@ export function FieldTeks({
   bantuan?: string;
   onEnter?: () => void;
   autoComplete?: string;
+  galat?: boolean;
 }) {
   return (
     <div>
@@ -33,7 +35,7 @@ export function FieldTeks({
         }}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className={INPUT_KELAS}
+        className={galat ? INPUT_GALAT_KELAS : INPUT_KELAS}
       />
       {bantuan && <p className="text-xs text-slate-500 mt-1">{bantuan}</p>}
     </div>

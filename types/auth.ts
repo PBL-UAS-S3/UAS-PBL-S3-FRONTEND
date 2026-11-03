@@ -5,5 +5,6 @@ export type ResponAuth = {
   email?: string;
   message?: string;
   error?: string;
+  kode?: string;
   perlu_verifikasi?: boolean;
 };

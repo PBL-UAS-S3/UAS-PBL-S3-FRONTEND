@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { InputKode } from '@/components/auth/InputKode';
 import { TombolAuth } from '@/components/auth/TombolAuth';
 
@@ -48,6 +49,13 @@ export function FormKode({
           </button>
         )}
       </div>
+
+      <p className="text-center text-sm text-slate-500 mt-3">
+        Email salah?{' '}
+        <Link href="/register" className="text-[#1E3A8A] font-semibold hover:text-[#172554]">
+          Daftar ulang dengan email lain
+        </Link>
+      </p>
     </>
   );
 }

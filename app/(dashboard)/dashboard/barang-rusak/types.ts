@@ -1,0 +1,1 @@
+export type Mode = 'pisah' | 'pulih' | 'afkir';

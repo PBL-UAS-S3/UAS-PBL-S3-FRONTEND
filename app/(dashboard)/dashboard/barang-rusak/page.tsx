@@ -5,7 +5,9 @@ import { Plus } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { NotifAlert } from '@/components/ui/NotifAlert';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Pagination } from '@/components/ui/Pagination';
 import { useNotifikasi } from '@/hooks/useNotifikasi';
+import { usePagination } from '@/hooks/usePagination';
 import { ambilProduk } from '@/services/produkService';
 import {
   ambilTransaksiTerbaru,
@@ -22,15 +24,22 @@ import { TabelKarantina } from './components/TabelKarantina';
 import { TabelAktivitas } from './components/TabelAktivitas';
 import { ModalTindakan } from './components/ModalTindakan';
 
+type TabAktif = 'stok' | 'aktivitas';
+
 export default function BarangRusakPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
   const [loading, setLoading] = useState(true);
   const [galat, setGalat] = useState('');
+  const [tab, setTab] = useState<TabAktif>('stok');
 
   const notif = useNotifikasi();
   const { produkRusak, totalUnitRusak, kerugian, produkBisaDipisah, aktivitas } =
     useRingkasanRusak(products, transaksi);
+
+  // Masing-masing tab punya pagination sendiri (10 data per halaman)
+  const pageStok = usePagination(produkRusak, 10);
+  const pageAktivitas = usePagination(aktivitas, 10);
 
   async function muat() {
     setLoading(true);
@@ -69,6 +78,13 @@ export default function BarangRusakPage() {
     },
   });
 
+  const classTab = (aktif: boolean) =>
+    `px-5 py-3 text-base font-semibold border-b-4 transition -mb-0.5 ${
+      aktif
+        ? 'border-[#1E3A8A] text-[#1E3A8A]'
+        : 'border-transparent text-slate-500 hover:text-slate-800'
+    }`;
+
   return (
     <main className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -104,23 +120,60 @@ export default function BarangRusakPage() {
           kerugian={kerugian}
         />
 
-        <h2 className="text-base font-bold text-slate-700 uppercase tracking-wide mb-3">
-          Area Karantina &amp; Tersortir
-        </h2>
-        <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8">
-          <TabelKarantina
-            data={produkRusak}
-            loading={loading}
-            onPulihkan={(p) => t.buka('pulih', p)}
-            onAfkir={(p) => t.buka('afkir', p)}
-          />
-        </div>
-
-        <h2 className="text-base font-bold text-slate-700 uppercase tracking-wide mb-3">
-          Aktivitas Karantina Terbaru
-        </h2>
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <TabelAktivitas data={aktivitas} loading={loading} />
+          <div className="flex border-b-2 border-slate-200 px-2 overflow-x-auto" role="tablist">
+            <button
+              role="tab"
+              aria-selected={tab === 'stok'}
+              onClick={() => setTab('stok')}
+              className={classTab(tab === 'stok')}
+            >
+              Stok Rusak Saat Ini
+              {!loading && <span className="ml-2 text-sm font-bold">({produkRusak.length})</span>}
+            </button>
+            <button
+              role="tab"
+              aria-selected={tab === 'aktivitas'}
+              onClick={() => setTab('aktivitas')}
+              className={classTab(tab === 'aktivitas')}
+            >
+              Riwayat Aktivitas
+              {!loading && <span className="ml-2 text-sm font-bold">({aktivitas.length})</span>}
+            </button>
+          </div>
+
+          {tab === 'stok' ? (
+            <>
+              <TabelKarantina
+                data={pageStok.dataHalaman}
+                loading={loading}
+                onPulihkan={(p) => t.buka('pulih', p)}
+                onAfkir={(p) => t.buka('afkir', p)}
+              />
+              {!loading && (
+                <Pagination
+                  halamanAktif={pageStok.halamanAktif}
+                  totalHalaman={pageStok.totalHalaman}
+                  onGanti={pageStok.setHalaman}
+                  totalData={pageStok.totalData}
+                  perHalaman={pageStok.perHalaman}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <TabelAktivitas data={pageAktivitas.dataHalaman} loading={loading} />
+              {!loading && (
+                <Pagination
+                  halamanAktif={pageAktivitas.halamanAktif}
+                  totalHalaman={pageAktivitas.totalHalaman}
+                  onGanti={pageAktivitas.setHalaman}
+                  totalData={pageAktivitas.totalData}
+                  perHalaman={pageAktivitas.perHalaman}
+                />
+              )}
+            </>
+          )}
         </div>
       </div>
 

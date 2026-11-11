@@ -3,6 +3,10 @@
 import { Package } from 'lucide-react';
 import { API_URL } from '@/lib/config';
 
+function urlGambar(gambar: string) {
+  return /^https?:\/\//.test(gambar) ? gambar : `${API_URL}${gambar}`;
+}
+
 export function Thumbnail({
   gambar,
   ukuran = 44,
@@ -16,11 +20,11 @@ export function Thumbnail({
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={`${API_URL}${gambar}`}
+        src={urlGambar(gambar)}
         alt=""
         style={{ width: ukuran, height: ukuran }}
         className={`rounded-xl object-cover border-2 border-slate-200 shrink-0 ${onZoom ? 'cursor-zoom-in' : ''}`}
-        onClick={onZoom ? () => onZoom(`${API_URL}${gambar}`) : undefined}
+        onClick={onZoom ? () => onZoom(urlGambar(gambar)) : undefined}
       />
     );
   }

@@ -19,7 +19,7 @@ export function useRingkasanRusak(products: Product[], transaksi: Transaksi[]) {
       produkBisaDipisah: products
         .filter((p) => p.stok_saat_ini > 0)
         .sort((a, b) => a.nama.localeCompare(b.nama)),
-      aktivitas: transaksi.filter((t) => TIPE_KARANTINA.includes(t.tipe)).slice(0, 8),
+      aktivitas: transaksi.filter((t) => TIPE_KARANTINA.includes(t.tipe)),
     };
   }, [products, transaksi]);
 }

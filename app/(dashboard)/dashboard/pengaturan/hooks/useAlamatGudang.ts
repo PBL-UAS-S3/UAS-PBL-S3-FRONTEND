@@ -1,16 +1,19 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { api } from '@/lib/api';
 import { useNotifikasi } from '@/hooks/useNotifikasi';
+import type { DataPengaturan } from '@/services/pengaturanService';
 import { FORM_ALAMAT_KOSONG } from '../constants';
-import type { FormAlamatState, HasilPencarian } from '../types';
+import type { FormAlamatState, HasilAksi, HasilPencarian } from '../types';
 
-export function useAlamatGudang() {
+export function useAlamatGudang({
+  onSimpan,
+}: {
+  onSimpan: (data: DataPengaturan) => Promise<HasilAksi>;
+}) {
   const [form, setForm] = useState<FormAlamatState>(FORM_ALAMAT_KOSONG);
   const [lat, setLat] = useState<number | null>(null);
   const [lon, setLon] = useState<number | null>(null);
-  const [loadingAwal, setLoadingAwal] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [queryCari, setQueryCari] = useState('');
@@ -21,6 +24,12 @@ export function useAlamatGudang() {
   const alertRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   // Tampilkan alert lalu gulir ke sana supaya tidak terlewat
   function tampilDanGulir(jenis: 'error' | 'sukses', pesan: string) {
     notif.tampil(jenis, pesan);
@@ -29,39 +38,23 @@ export function useAlamatGudang() {
     }, 50);
   }
 
-  useEffect(() => {
-    async function muat() {
-      setLoadingAwal(true);
-      const res = await api<any>('/pengaturan');
-      if (res.sesiHabis) return;
-
-      if (res.ok) {
-        const d = res.data;
-        setForm({
-          nama_gudang: d.nama_gudang || '',
-          telepon: d.telepon || '',
-          alamat: d.alamat || '',
-          provinsi: d.provinsi || '',
-          kota: d.kota || '',
-          kecamatan: d.kecamatan || '',
-          kode_pos: d.kode_pos || '',
-          catatan: d.catatan || '',
-        });
-        if (d.latitude && d.longitude) {
-          setLat(Number(d.latitude));
-          setLon(Number(d.longitude));
-        }
-      } else {
-        notif.tampil('error', res.data?.error || 'Tidak dapat terhubung ke server');
-      }
-      setLoadingAwal(false);
+  // Dipanggil page setelah data pengaturan berhasil diambil dari server
+  function isiDariServer(d: any) {
+    setForm({
+      nama_gudang: d.nama_gudang || '',
+      telepon: d.telepon || '',
+      alamat: d.alamat || '',
+      provinsi: d.provinsi || '',
+      kota: d.kota || '',
+      kecamatan: d.kecamatan || '',
+      kode_pos: d.kode_pos || '',
+      catatan: d.catatan || '',
+    });
+    if (d.latitude && d.longitude) {
+      setLat(Number(d.latitude));
+      setLon(Number(d.longitude));
     }
-
-    muat();
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
+  }
 
   function ubah(field: keyof FormAlamatState, nilai: string) {
     setForm((prev) => ({ ...prev, [field]: nilai }));
@@ -138,16 +131,13 @@ export function useAlamatGudang() {
 
   async function simpan() {
     setSaving(true);
-    const res = await api<{ error?: string }>('/pengaturan', {
-      method: 'PUT',
-      body: { ...form, latitude: lat, longitude: lon },
-    });
-    if (res.sesiHabis) return;
+    const hasil = await onSimpan({ ...form, latitude: lat, longitude: lon });
+    if (hasil.sesiHabis) return;
 
-    if (res.ok) {
+    if (hasil.ok) {
       tampilDanGulir('sukses', 'Alamat gudang berhasil disimpan');
     } else {
-      tampilDanGulir('error', res.data.error || 'Gagal menyimpan');
+      tampilDanGulir('error', hasil.error || 'Gagal menyimpan');
     }
     setSaving(false);
   }
@@ -155,8 +145,9 @@ export function useAlamatGudang() {
   return {
     form, ubah,
     lat, lon,
-    loadingAwal, saving,
+    saving,
     queryCari, ubahQuery, hasilCari, sedangCari,
+    isiDariServer,
     pilihTitik, pilihHasil,
     simpan,
     notif, alertRef,

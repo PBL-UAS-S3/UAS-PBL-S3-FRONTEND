@@ -1,56 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { api } from '@/lib/api';
-import { useNotifikasi } from '@/hooks/useNotifikasi';
+import { useMemo, useState } from 'react';
 import { usePagination } from '@/hooks/usePagination';
 import type { Product } from '@/types/produk';
 import { PRESET_SATUAN } from '../constants';
 import { rusakDari, statusKey } from '../helpers';
 
-export function useProduk() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [galat, setGalat] = useState('');
-  const [menghapus, setMenghapus] = useState(false);
-
+export function useFilterProduk(products: Product[]) {
   const [searchText, setSearchText] = useState('');
   const [kategoriFilter, setKategoriFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-
-  const notif = useNotifikasi();
-
-  async function muat() {
-    setLoading(true);
-    setGalat('');
-    const res = await api<Product[]>('/products');
-    if (res.sesiHabis) return;
-
-    if (res.ok && Array.isArray(res.data)) {
-      setProducts(res.data);
-    } else {
-      setGalat((res.data as any)?.error || 'Gagal memuat data produk');
-    }
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    muat();
-  }, []);
-
-  async function hapus(p: Product) {
-    setMenghapus(true);
-    const res = await api<{ error?: string }>(`/products/${p.id}`, { method: 'DELETE' });
-    if (res.sesiHabis) return;
-
-    if (res.ok) {
-      notif.tampil('sukses', `Produk "${p.nama}" berhasil dihapus`);
-      await muat();
-    } else {
-      notif.tampil('error', res.data.error || 'Gagal menghapus produk');
-    }
-    setMenghapus(false);
-  }
 
   const daftarKategori = useMemo(
     () => Array.from(new Set(products.map((p) => p.kategori).filter((k): k is string => !!k))),
@@ -84,13 +43,6 @@ export function useProduk() {
   const halaman = usePagination(tersaring, 10, `${searchText}|${kategoriFilter}|${statusFilter}`);
 
   return {
-    loading,
-    galat,
-    setGalat,
-    muat,
-    notif,
-    menghapus,
-    hapus,
     daftarKategori,
     daftarSatuan,
     jumlahCocok: tersaring.length,

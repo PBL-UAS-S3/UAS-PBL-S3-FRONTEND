@@ -1,16 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from '@/components/ui/Alert';
 import { Pagination } from '@/components/ui/Pagination';
 import { ModalZoomGambar } from '@/components/ui/ModalZoomGambar';
-import { useRiwayat } from './hooks/useRiwayat';
+import { ambilTransaksiTerbaru } from '@/services/transaksiService';
+import type { Transaksi } from '@/types/transaksi';
+import { useFilterRiwayat } from './hooks/useFilterRiwayat';
 import { FilterRiwayat } from './components/FilterRiwayat';
 import { TabelRiwayat } from './components/TabelRiwayat';
 
 export default function RiwayatPage() {
-  const { loading, galat, setGalat, muat, daftarStaf, jumlahCocok, halaman, filter } = useRiwayat();
+  const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState('');
   const [zoomUrl, setZoomUrl] = useState<string | null>(null);
+
+  const { daftarStaf, jumlahCocok, halaman, filter } = useFilterRiwayat(transaksi);
+
+  async function muat() {
+    setLoading(true);
+    setGalat('');
+
+    const res = await ambilTransaksiTerbaru();
+    if (res.sesiHabis) return;
+
+    if (res.ok && Array.isArray(res.data)) {
+      setTransaksi(res.data);
+    } else {
+      setGalat((res.data as any)?.error || 'Gagal memuat riwayat transaksi');
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    muat();
+  }, []);
 
   return (
     <main className="p-4 md:p-8">

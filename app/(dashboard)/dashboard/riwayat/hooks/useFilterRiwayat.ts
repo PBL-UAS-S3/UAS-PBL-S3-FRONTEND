@@ -1,37 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { api } from '@/lib/api';
+import { useMemo, useState } from 'react';
 import { usePagination } from '@/hooks/usePagination';
 import type { Transaksi } from '@/types/transaksi';
 
-export function useRiwayat() {
-  const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [galat, setGalat] = useState('');
-
+export function useFilterRiwayat(transaksi: Transaksi[]) {
   const [searchText, setSearchText] = useState('');
   const [tipeFilter, setTipeFilter] = useState('');
   const [staffFilter, setStaffFilter] = useState('');
-
-  async function muat() {
-    setLoading(true);
-    setGalat('');
-
-    const res = await api<Transaksi[]>('/transactions/recent');
-    if (res.sesiHabis) return;
-
-    if (res.ok && Array.isArray(res.data)) {
-      setTransaksi(res.data);
-    } else {
-      setGalat((res.data as any)?.error || 'Gagal memuat riwayat transaksi');
-    }
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    muat();
-  }, []);
 
   const daftarStaf = useMemo(
     () => Array.from(new Set(transaksi.map((t) => t.nama_staf))),
@@ -55,10 +31,6 @@ export function useRiwayat() {
   const halaman = usePagination(tersaring, 10, `${searchText}|${tipeFilter}|${staffFilter}`);
 
   return {
-    loading,
-    galat,
-    setGalat,
-    muat,
     daftarStaf,
     jumlahCocok: tersaring.length,
     halaman,

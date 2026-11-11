@@ -1,25 +1,95 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import { Alert, DialogKonfirmasi } from '@/components/ui/Alert';
 import { NotifAlert } from '@/components/ui/NotifAlert';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { KartuKodeGudang } from '@/components/gudang/KartuKodeGudang';
-import { useStaf } from './hooks/useStaf';
+import { useNotifikasi } from '@/hooks/useNotifikasi';
+import { useSalinTeks } from '@/hooks/useSalinTeks';
+import {
+  ambilGudangSaya,
+  ambilStaf,
+  keluarkanStaf,
+  setujuiStaf,
+} from '@/services/gudangService';
 import type { AksiStaf, Staf } from './types';
 import { TabelPermintaan } from './components/TabelPermintaan';
 import { TabelStafAktif } from './components/TabelStafAktif';
 
 export default function StafPage() {
-  const s = useStaf();
+  const [staf, setStaf] = useState<Staf[]>([]);
+  const [kode, setKode] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState('');
+  const [prosesId, setProsesId] = useState<number | null>(null);
   const [konfirmasi, setKonfirmasi] = useState<{ staf: Staf; aksi: AksiStaf } | null>(null);
+
+  const notif = useNotifikasi();
+  const salinan = useSalinTeks(() =>
+    notif.tampil('error', 'Gagal menyalin otomatis, salin manual dari kotak kode.'),
+  );
+
+  async function muat() {
+    setLoading(true);
+    setGalat('');
+
+    const [resStaf, resGudang] = await Promise.all([ambilStaf(), ambilGudangSaya()]);
+    if (resStaf.sesiHabis || resGudang.sesiHabis) return;
+
+    if (resStaf.ok && Array.isArray(resStaf.data)) {
+      setStaf(resStaf.data);
+    } else {
+      setGalat((resStaf.data as any)?.error || 'Gagal memuat daftar staf');
+    }
+
+    if (resGudang.ok) setKode(resGudang.data.kode || '');
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    muat();
+  }, []);
+
+  async function jalankan(s: Staf, aksi: 'setujui' | 'keluarkan', pesanSukses: string) {
+    setProsesId(s.id);
+
+    const res = aksi === 'setujui' ? await setujuiStaf(s.id) : await keluarkanStaf(s.id);
+    if (res.sesiHabis) return;
+
+    if (res.ok) {
+      notif.tampil('sukses', pesanSukses);
+      await muat();
+    } else {
+      notif.tampil('error', res.data.error || 'Aksi gagal diproses');
+    }
+    setProsesId(null);
+  }
+
+  function setujui(s: Staf) {
+    return jalankan(s, 'setujui', `${s.nama} sekarang tergabung di gudang kamu`);
+  }
+
+  // Tolak permintaan atau keluarkan staf: di backend keduanya sama (akun tidak dihapus)
+  function hapusAkses(s: Staf, aksi: AksiStaf) {
+    return jalankan(
+      s,
+      'keluarkan',
+      aksi === 'tolak'
+        ? `Permintaan ${s.nama} ditolak`
+        : `${s.nama} sudah dikeluarkan dari gudang`,
+    );
+  }
 
   async function lanjutkan() {
     if (!konfirmasi) return;
-    await s.hapusAkses(konfirmasi.staf, konfirmasi.aksi);
+    await hapusAkses(konfirmasi.staf, konfirmasi.aksi);
     setKonfirmasi(null);
   }
+
+  const menunggu = staf.filter((s) => s.status_anggota === 'menunggu');
+  const aktif = staf.filter((s) => s.status_anggota !== 'menunggu');
 
   return (
     <main className="p-4 md:p-8">
@@ -30,37 +100,37 @@ export default function StafPage() {
           deskripsi="Kelola staf dan permintaan bergabung ke gudang kamu"
         />
 
-        {s.galat && (
-          <Alert jenis="error" onClose={() => s.setGalat('')} className="mb-4">
-            {s.galat}{' '}
-            <button onClick={s.muat} className="font-bold underline">
+        {galat && (
+          <Alert jenis="error" onClose={() => setGalat('')} className="mb-4">
+            {galat}{' '}
+            <button onClick={muat} className="font-bold underline">
               Coba lagi
             </button>
           </Alert>
         )}
 
-        <NotifAlert notif={s.notif.notif} onTutup={s.notif.tutup} />
+        <NotifAlert notif={notif.notif} onTutup={notif.tutup} />
 
         <KartuKodeGudang
-          kode={s.kode}
-          tersalin={s.tersalin}
-          onSalin={s.salinKode}
+          kode={kode}
+          tersalin={salinan.tersalin}
+          onSalin={() => salinan.salin(kode)}
           deskripsi="Staf mendaftar dulu di aplikasi mobile, lalu memasukkan kode ini di halaman Gudang Saya setelah login. Permintaan mereka muncul di bawah, dan mereka baru bisa memakai data gudang setelah kamu menyetujuinya. Kode bisa diganti kapan saja di menu Pengaturan."
         />
 
-        {!s.loading && (
+        {!loading && (
           <TabelPermintaan
-            data={s.menunggu}
-            prosesId={s.prosesId}
-            onSetujui={s.setujui}
+            data={menunggu}
+            prosesId={prosesId}
+            onSetujui={setujui}
             onTolak={(st) => setKonfirmasi({ staf: st, aksi: 'tolak' })}
           />
         )}
 
         <TabelStafAktif
-          data={s.aktif}
-          loading={s.loading}
-          prosesId={s.prosesId}
+          data={aktif}
+          loading={loading}
+          prosesId={prosesId}
           onKeluarkan={(st) => setKonfirmasi({ staf: st, aksi: 'keluarkan' })}
         />
       </div>
@@ -80,9 +150,9 @@ export default function StafPage() {
             : ''
         }
         labelYa={konfirmasi?.aksi === 'tolak' ? 'Ya, tolak' : 'Ya, keluarkan'}
-        memproses={konfirmasi ? s.prosesId === konfirmasi.staf.id : false}
+        memproses={konfirmasi ? prosesId === konfirmasi.staf.id : false}
         onYa={lanjutkan}
-        onBatal={() => s.prosesId === null && setKonfirmasi(null)}
+        onBatal={() => prosesId === null && setKonfirmasi(null)}
       />
     </main>
   );

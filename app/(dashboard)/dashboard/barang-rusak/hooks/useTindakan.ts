@@ -1,18 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { api } from '@/lib/api';
+import type { DataTransaksi } from '@/services/transaksiService';
 import type { Product } from '@/types/produk';
 import { ALASAN, TIPE_BARU } from '../constants';
-import type { Mode } from '../types';
+import type { HasilAksi, Mode } from '../types';
 
-export function useTindakan({
-  products,
-  onBerhasil,
-}: {
+type Opsi = {
   products: Product[];
+  onKirim: (data: DataTransaksi) => Promise<HasilAksi>;
   onBerhasil: (pesan: string) => void;
-}) {
+};
+
+export function useTindakan({ products, onKirim, onBerhasil }: Opsi) {
   const [mode, setMode] = useState<Mode | null>(null);
   const [produkDipilih, setProdukDipilih] = useState<Product | null>(null);
   const [skuPilihan, setSkuPilihan] = useState('');
@@ -79,18 +79,15 @@ export function useTindakan({
     }
 
     setMemproses(true);
-    const res = await api<{ error?: string }>('/transactions', {
-      method: 'POST',
-      body: {
-        sku: produkAktif.sku,
-        tipe: TIPE_BARU[mode],
-        jumlah: angka,
-        catatan: teksCatatan || null,
-      },
+    const hasil = await onKirim({
+      sku: produkAktif.sku,
+      tipe: TIPE_BARU[mode],
+      jumlah: angka,
+      catatan: teksCatatan || null,
     });
-    if (res.sesiHabis) return;
+    if (hasil.sesiHabis) return;
 
-    if (res.ok) {
+    if (hasil.ok) {
       const nama = produkAktif.nama;
       setMode(null);
       setProdukDipilih(null);
@@ -102,7 +99,7 @@ export function useTindakan({
             : `${angka} unit "${nama}" diafkir dan dihapus dari stok rusak`,
       );
     } else {
-      setPesan(res.data.error || 'Gagal menyimpan transaksi');
+      setPesan(hasil.error || 'Gagal menyimpan transaksi');
     }
     setMemproses(false);
   }

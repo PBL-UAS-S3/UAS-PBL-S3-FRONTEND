@@ -1,13 +1,39 @@
 'use client';
 
+import { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useHubungiKami } from './hooks/useHubungiKami';
+import { kirimKeluhan } from '@/services/keluhanService';
 import { FormKeluhan } from './components/FormKeluhan';
 
 export default function HubungiKamiPage() {
-  const h = useHubungiKami();
+  const [pesan, setPesan] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [galat, setGalat] = useState('');
+  const [sukses, setSukses] = useState('');
+
+  async function kirim() {
+    setGalat('');
+    setSukses('');
+
+    if (!pesan.trim()) {
+      setGalat('Pesan tidak boleh kosong');
+      return;
+    }
+
+    setLoading(true);
+    const res = await kirimKeluhan(pesan);
+    if (res.sesiHabis) return;
+
+    if (res.ok) {
+      setSukses(res.data.message || 'Pesan berhasil dikirim');
+      setPesan('');
+    } else {
+      setGalat(res.data.error || 'Gagal mengirim pesan');
+    }
+    setLoading(false);
+  }
 
   return (
     <main className="p-4 md:p-8">
@@ -19,23 +45,18 @@ export default function HubungiKamiPage() {
         />
 
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm p-6">
-          {h.galat && (
-            <Alert jenis="error" onClose={() => h.setGalat('')} className="mb-5">
-              {h.galat}
+          {galat && (
+            <Alert jenis="error" onClose={() => setGalat('')} className="mb-5">
+              {galat}
             </Alert>
           )}
-          {h.sukses && (
-            <Alert jenis="sukses" onClose={() => h.setSukses('')} className="mb-5">
-              {h.sukses}
+          {sukses && (
+            <Alert jenis="sukses" onClose={() => setSukses('')} className="mb-5">
+              {sukses}
             </Alert>
           )}
 
-          <FormKeluhan
-            pesan={h.pesan}
-            setPesan={h.setPesan}
-            loading={h.loading}
-            onKirim={h.kirim}
-          />
+          <FormKeluhan pesan={pesan} setPesan={setPesan} loading={loading} onKirim={kirim} />
         </div>
       </div>
     </main>

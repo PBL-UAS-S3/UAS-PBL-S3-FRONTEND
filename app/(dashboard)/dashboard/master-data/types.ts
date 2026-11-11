@@ -9,3 +9,9 @@ export type FormProduk = {
 };
 
 export type StatusKey = 'aman' | 'menipis' | 'habis';
+
+export type HasilSimpan = {
+  ok: boolean;
+  sesiHabis?: boolean;
+  error?: string;
+};

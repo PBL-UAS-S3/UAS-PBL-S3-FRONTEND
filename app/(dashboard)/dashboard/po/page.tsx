@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from '@/components/ui/Alert';
 import { NotifAlert } from '@/components/ui/NotifAlert';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Pagination } from '@/components/ui/Pagination';
 import { ModalZoomGambar } from '@/components/ui/ModalZoomGambar';
-import { usePO } from './hooks/usePO';
+import { useNotifikasi } from '@/hooks/useNotifikasi';
+import { ambilPO, setujuiPO, tolakPO } from '@/services/poService';
+import { useFilterPO } from './hooks/useFilterPO';
+import { nomorPO, totalPO } from './helpers';
 import type { PO } from './types';
 import { RingkasanPO } from './components/RingkasanPO';
 import { ToolbarPO } from './components/ToolbarPO';
@@ -15,10 +18,79 @@ import { ModalDetailPO } from './components/ModalDetailPO';
 import { ModalTolakPO } from './components/ModalTolakPO';
 
 export default function PurchaseOrderPage() {
-  const p = usePO();
+  const [pos, setPos] = useState<PO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState('');
+  const [prosesId, setProsesId] = useState<number | null>(null);
+
   const [detail, setDetail] = useState<PO | null>(null);
   const [tolakTarget, setTolakTarget] = useState<PO | null>(null);
   const [zoomUrl, setZoomUrl] = useState<string | null>(null);
+
+  const notif = useNotifikasi();
+  const { tab, setTab, searchText, setSearchText, jumlahSesuaiTab, jumlahTersaring, halaman } =
+    useFilterPO(pos);
+
+  async function muat() {
+    setLoading(true);
+    setGalat('');
+
+    const res = await ambilPO();
+    if (res.sesiHabis) return;
+
+    if (res.ok && Array.isArray(res.data)) {
+      setPos(res.data);
+    } else {
+      setPos([]);
+      setGalat((res.data as any)?.error || 'Gagal memuat data Purchase Order');
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    muat();
+  }, []);
+
+  async function setujui(po: PO) {
+    setProsesId(po.id);
+
+    const res = await setujuiPO(po.id);
+    if (res.sesiHabis) return;
+
+    if (res.ok) {
+      notif.tampil(
+        'sukses',
+        `${nomorPO(po)} disetujui. Stok ${po.nama} bertambah ${po.jumlah} menjadi ${res.data.stok_baru}.`,
+      );
+      await muat();
+    } else {
+      notif.tampil('error', res.data.error || 'Gagal menyetujui Purchase Order');
+    }
+    setProsesId(null);
+  }
+
+  // Mengembalikan pesan error, atau null kalau berhasil
+  async function tolak(po: PO, alasan: string): Promise<string | null> {
+    setProsesId(po.id);
+
+    const res = await tolakPO(po.id, alasan);
+    if (res.sesiHabis) return null;
+    setProsesId(null);
+
+    if (res.ok) {
+      notif.tampil('sukses', `${nomorPO(po)} ditolak. Stok tidak berubah.`);
+      await muat();
+      return null;
+    }
+    return res.data.error || 'Gagal menolak Purchase Order';
+  }
+
+  const jumlahMenunggu = pos.filter((p) => p.status === 'pending').length;
+  const jumlahDitolak = pos.filter((p) => p.status === 'ditolak').length;
+  const jumlahSelesai = pos.filter((p) => p.status === 'selesai').length;
+  const nilaiBerjalan = pos
+    .filter((p) => p.status === 'pending')
+    .reduce((total, p) => total + totalPO(p), 0);
 
   return (
     <main className="p-4 md:p-8">
@@ -28,57 +100,57 @@ export default function PurchaseOrderPage() {
           deskripsi="Kelola dan setujui pesanan pembelian inventori bahan dan pasokan gudang."
         />
 
-        {p.galat && (
-          <Alert jenis="error" onClose={() => p.setGalat('')} className="mb-4">
-            {p.galat}{' '}
-            <button onClick={p.muat} className="font-bold underline">
+        {galat && (
+          <Alert jenis="error" onClose={() => setGalat('')} className="mb-4">
+            {galat}{' '}
+            <button onClick={muat} className="font-bold underline">
               Coba lagi
             </button>
           </Alert>
         )}
 
-        <NotifAlert notif={p.notif.notif} onTutup={p.notif.tutup} />
+        <NotifAlert notif={notif.notif} onTutup={notif.tutup} />
 
         <RingkasanPO
-          loading={p.loading}
-          menunggu={p.jumlahMenunggu}
-          nilaiBerjalan={p.nilaiBerjalan}
-          selesai={p.jumlahSelesai}
+          loading={loading}
+          menunggu={jumlahMenunggu}
+          nilaiBerjalan={nilaiBerjalan}
+          selesai={jumlahSelesai}
         />
 
         <ToolbarPO
-          tab={p.tab}
-          setTab={p.setTab}
-          jumlahMenunggu={p.jumlahMenunggu}
-          jumlahSemua={p.jumlahPO}
-          jumlahDitolak={p.jumlahDitolak}
-          searchText={p.searchText}
-          setSearchText={p.setSearchText}
+          tab={tab}
+          setTab={setTab}
+          jumlahMenunggu={jumlahMenunggu}
+          jumlahSemua={pos.length}
+          jumlahDitolak={jumlahDitolak}
+          searchText={searchText}
+          setSearchText={setSearchText}
         />
 
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <TabelPO
-            data={p.halaman.dataHalaman}
-            loading={p.loading}
-            kosong={p.jumlahTersaring === 0}
-            prosesId={p.prosesId}
-            onSetujui={p.setujui}
+            data={halaman.dataHalaman}
+            loading={loading}
+            kosong={jumlahTersaring === 0}
+            prosesId={prosesId}
+            onSetujui={setujui}
             onTolak={setTolakTarget}
             onLihat={setDetail}
             onZoom={setZoomUrl}
           />
-          {!p.loading && (
+          {!loading && (
             <div className="px-5 py-3 border-t-2 border-slate-100 text-base text-slate-600">
-              Total {p.jumlahTersaring} PO • Menampilkan {p.halaman.dataHalaman.length} dari{' '}
-              {p.jumlahSesuaiTab} rekaman
+              Total {jumlahTersaring} PO • Menampilkan {halaman.dataHalaman.length} dari{' '}
+              {jumlahSesuaiTab} rekaman
             </div>
           )}
           <Pagination
-            halamanAktif={p.halaman.halamanAktif}
-            totalHalaman={p.halaman.totalHalaman}
-            onGanti={p.halaman.setHalaman}
-            totalData={p.halaman.totalData}
-            perHalaman={p.halaman.perHalaman}
+            halamanAktif={halaman.halamanAktif}
+            totalHalaman={halaman.totalHalaman}
+            onGanti={halaman.setHalaman}
+            totalData={halaman.totalData}
+            perHalaman={halaman.perHalaman}
           />
         </div>
       </div>
@@ -90,11 +162,11 @@ export default function PurchaseOrderPage() {
       {tolakTarget && (
         <ModalTolakPO
           po={tolakTarget}
-          memproses={p.prosesId === tolakTarget.id}
+          memproses={prosesId === tolakTarget.id}
           onTolak={async (alasan) => {
-            const galat = await p.tolak(tolakTarget, alasan);
-            if (!galat) setTolakTarget(null);
-            return galat;
+            const err = await tolak(tolakTarget, alasan);
+            if (!err) setTolakTarget(null);
+            return err;
           }}
           onTutup={() => setTolakTarget(null)}
         />

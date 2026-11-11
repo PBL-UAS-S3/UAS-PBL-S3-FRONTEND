@@ -15,3 +15,9 @@ export type FormAlamatState = {
   kode_pos: string;
   catatan: string;
 };
+
+export type HasilAksi = {
+  ok: boolean;
+  sesiHabis?: boolean;
+  error?: string;
+};

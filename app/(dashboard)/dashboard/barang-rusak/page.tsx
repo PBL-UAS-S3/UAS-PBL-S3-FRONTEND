@@ -1,23 +1,71 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { NotifAlert } from '@/components/ui/NotifAlert';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useBarangRusak } from './hooks/useBarangRusak';
+import { useNotifikasi } from '@/hooks/useNotifikasi';
+import { ambilProduk } from '@/services/produkService';
+import {
+  ambilTransaksiTerbaru,
+  catatTransaksi,
+  type DataTransaksi,
+} from '@/services/transaksiService';
+import type { Product } from '@/types/produk';
+import type { Transaksi } from '@/types/transaksi';
+import { useRingkasanRusak } from './hooks/useRingkasanRusak';
 import { useTindakan } from './hooks/useTindakan';
+import type { HasilAksi } from './types';
 import { RingkasanRusak } from './components/RingkasanRusak';
 import { TabelKarantina } from './components/TabelKarantina';
 import { TabelAktivitas } from './components/TabelAktivitas';
 import { ModalTindakan } from './components/ModalTindakan';
 
 export default function BarangRusakPage() {
-  const b = useBarangRusak();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState('');
+
+  const notif = useNotifikasi();
+  const { produkRusak, totalUnitRusak, kerugian, produkBisaDipisah, aktivitas } =
+    useRingkasanRusak(products, transaksi);
+
+  async function muat() {
+    setLoading(true);
+    setGalat('');
+
+    const [resProduk, resTransaksi] = await Promise.all([
+      ambilProduk(),
+      ambilTransaksiTerbaru(),
+    ]);
+    if (resProduk.sesiHabis || resTransaksi.sesiHabis) return;
+
+    if (resProduk.ok && Array.isArray(resProduk.data)) {
+      setProducts(resProduk.data);
+    } else {
+      setGalat((resProduk.data as any)?.error || 'Gagal memuat data produk');
+    }
+    setTransaksi(Array.isArray(resTransaksi.data) ? resTransaksi.data : []);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    muat();
+  }, []);
+
+  async function kirim(data: DataTransaksi): Promise<HasilAksi> {
+    const res = await catatTransaksi(data);
+    return { ok: res.ok, sesiHabis: res.sesiHabis, error: res.data?.error };
+  }
+
   const t = useTindakan({
-    products: b.products,
+    products,
+    onKirim: kirim,
     onBerhasil: (pesan) => {
-      b.notif.tampil('sukses', pesan);
-      b.muat();
+      notif.tampil('sukses', pesan);
+      muat();
     },
   });
 
@@ -38,22 +86,22 @@ export default function BarangRusakPage() {
           }
         />
 
-        {b.galat && (
-          <Alert jenis="error" onClose={() => b.setGalat('')} className="mb-4">
-            {b.galat}{' '}
-            <button onClick={b.muat} className="font-bold underline">
+        {galat && (
+          <Alert jenis="error" onClose={() => setGalat('')} className="mb-4">
+            {galat}{' '}
+            <button onClick={muat} className="font-bold underline">
               Coba lagi
             </button>
           </Alert>
         )}
 
-        <NotifAlert notif={b.notif.notif} onTutup={b.notif.tutup} />
+        <NotifAlert notif={notif.notif} onTutup={notif.tutup} />
 
         <RingkasanRusak
-          loading={b.loading}
-          totalUnit={b.totalUnitRusak}
-          produkTerdampak={b.produkRusak.length}
-          kerugian={b.kerugian}
+          loading={loading}
+          totalUnit={totalUnitRusak}
+          produkTerdampak={produkRusak.length}
+          kerugian={kerugian}
         />
 
         <h2 className="text-base font-bold text-slate-700 uppercase tracking-wide mb-3">
@@ -61,8 +109,8 @@ export default function BarangRusakPage() {
         </h2>
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-8">
           <TabelKarantina
-            data={b.produkRusak}
-            loading={b.loading}
+            data={produkRusak}
+            loading={loading}
             onPulihkan={(p) => t.buka('pulih', p)}
             onAfkir={(p) => t.buka('afkir', p)}
           />
@@ -72,11 +120,11 @@ export default function BarangRusakPage() {
           Aktivitas Karantina Terbaru
         </h2>
         <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <TabelAktivitas data={b.aktivitas} loading={b.loading} />
+          <TabelAktivitas data={aktivitas} loading={loading} />
         </div>
       </div>
 
-      <ModalTindakan t={t} produkBisaDipisah={b.produkBisaDipisah} />
+      <ModalTindakan t={t} produkBisaDipisah={produkBisaDipisah} />
     </main>
   );
 }

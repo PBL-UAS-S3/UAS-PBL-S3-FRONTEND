@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { api } from '@/lib/api';
+import { unggahFotoProduk, type DataProduk } from '@/services/produkService';
 import type { Product } from '@/types/produk';
 import { FORM_KOSONG } from '../constants';
 import { bersihkanAngka, rusakDari } from '../helpers';
-import type { FormProduk } from '../types';
+import type { FormProduk, HasilSimpan } from '../types';
 
-export function useFormProduk({ onBerhasil }: { onBerhasil: (pesan: string) => void }) {
+type Opsi = {
+  onSimpan: (id: number | null, data: DataProduk) => Promise<HasilSimpan>;
+  onBerhasil: (pesan: string) => void;
+};
+
+export function useFormProduk({ onSimpan, onBerhasil }: Opsi) {
   const [buka, setBuka] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingSku, setEditingSku] = useState('');
@@ -59,12 +64,7 @@ export function useFormProduk({ onBerhasil }: { onBerhasil: (pesan: string) => v
     setUploading(true);
     setPesan('');
 
-    const formData = new FormData();
-    formData.append('gambar', file);
-    const res = await api<{ url?: string; error?: string }>('/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    const res = await unggahFotoProduk(file);
     if (res.sesiHabis) return;
 
     if (res.ok && res.data.url) {
@@ -106,24 +106,18 @@ export function useFormProduk({ onBerhasil }: { onBerhasil: (pesan: string) => v
     }
 
     setMenyimpan(true);
-    const res = await api<{ error?: string }>(
-      editingId ? `/products/${editingId}` : '/products',
-      {
-        method: editingId ? 'PUT' : 'POST',
-        body: {
-          nama: form.nama,
-          kategori: form.kategori,
-          satuan: form.satuan,
-          harga: Number(form.harga || 0),
-          gambar: form.gambar,
-          stok_saat_ini: Number(form.stok_saat_ini || 0),
-          stok_minimum: Number(form.stok_minimum || 0),
-        },
-      },
-    );
-    if (res.sesiHabis) return;
+    const hasil = await onSimpan(editingId, {
+      nama: form.nama,
+      kategori: form.kategori,
+      satuan: form.satuan,
+      harga: Number(form.harga || 0),
+      gambar: form.gambar,
+      stok_saat_ini: Number(form.stok_saat_ini || 0),
+      stok_minimum: Number(form.stok_minimum || 0),
+    });
+    if (hasil.sesiHabis) return;
 
-    if (res.ok) {
+    if (hasil.ok) {
       setBuka(false);
       onBerhasil(
         editingId
@@ -131,7 +125,7 @@ export function useFormProduk({ onBerhasil }: { onBerhasil: (pesan: string) => v
           : `Produk "${form.nama}" berhasil ditambahkan`,
       );
     } else {
-      setPesan(res.data.error || 'Gagal menyimpan produk');
+      setPesan(hasil.error || 'Gagal menyimpan produk');
     }
     setMenyimpan(false);
   }

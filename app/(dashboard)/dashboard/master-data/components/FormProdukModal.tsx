@@ -2,6 +2,7 @@
 
 import { Upload, X } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
+import { SelectDenganLainnya } from '@/components/ui/SelectDenganLainnya';
 import { Thumbnail } from '@/components/ui/Thumbnail';
 import { INPUT_KELAS } from '@/lib/ui';
 import { formatRibuan } from '../helpers';
@@ -13,10 +14,25 @@ type Props = {
   daftarSatuan: string[];
 };
 
+const KATEGORI_BAWAAN = ['Aksesoris', 'Alat Tulis', 'Elektronik', 'Makanan', 'Minuman', 'Perkakas'];
+const SATUAN_BAWAAN = ['pcs', 'box', 'kg', 'pack', 'lusin', 'dus', 'liter', 'meter'];
+
+// Gabungkan nilai dari data produk dengan template bawaan, tanpa duplikat (tidak peka huruf besar/kecil)
+function gabung(dariData: string[], bawaan: string[]) {
+  const peta = new Map<string, string>();
+  for (const x of [...dariData, ...bawaan]) {
+    const bersih = (x ?? '').trim();
+    if (bersih && !peta.has(bersih.toLowerCase())) peta.set(bersih.toLowerCase(), bersih);
+  }
+  return [...peta.values()].sort((a, b) => a.localeCompare(b));
+}
+
 export function FormProdukModal({ fp, daftarKategori, daftarSatuan }: Props) {
   if (!fp.buka) return null;
 
   const edit = !!fp.editingId;
+  const opsiKategori = gabung(daftarKategori, KATEGORI_BAWAAN);
+  const opsiSatuan = gabung(daftarSatuan, SATUAN_BAWAAN);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -90,41 +106,21 @@ export function FormProdukModal({ fp, daftarKategori, daftarSatuan }: Props) {
               />
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">
-                Kategori (pilih atau ketik baru)
-              </label>
-              <input
-                list="daftar-kategori-input"
-                placeholder="Contoh: Aksesoris"
-                value={fp.form.kategori}
-                onChange={(e) => fp.ubahTeks('kategori', e.target.value)}
-                className={INPUT_KELAS}
-              />
-              <datalist id="daftar-kategori-input">
-                {daftarKategori.map((k) => (
-                  <option key={k} value={k} />
-                ))}
-              </datalist>
-            </div>
+            <SelectDenganLainnya
+              label="Kategori"
+              value={fp.form.kategori || ''}
+              onChange={(v) => fp.ubahTeks('kategori', v)}
+              opsi={opsiKategori}
+              placeholderKetik="Contoh: Aksesoris"
+            />
 
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-1 block">
-                Satuan (pilih atau ketik baru)
-              </label>
-              <input
-                list="daftar-satuan-input"
-                placeholder="Contoh: Pcs, Kg, Dus"
-                value={fp.form.satuan}
-                onChange={(e) => fp.ubahTeks('satuan', e.target.value)}
-                className={INPUT_KELAS}
-              />
-              <datalist id="daftar-satuan-input">
-                {daftarSatuan.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
-            </div>
+            <SelectDenganLainnya
+              label="Satuan"
+              value={fp.form.satuan || ''}
+              onChange={(v) => fp.ubahTeks('satuan', v)}
+              opsi={opsiSatuan}
+              placeholderKetik="Contoh: Pcs, Kg, Dus"
+            />
 
             <div>
               <label className="text-sm font-semibold text-slate-700 mb-1 block">

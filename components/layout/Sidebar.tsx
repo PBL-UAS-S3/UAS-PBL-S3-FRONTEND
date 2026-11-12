@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { LogOut, X } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
@@ -19,16 +20,25 @@ export function Sidebar({
   pathname: string;
   onLogout: () => void;
 }) {
+  // Saat laci terbuka di layar kecil, halaman di belakangnya tidak ikut bergulir
+  useEffect(() => {
+    document.body.style.overflow = terbuka ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [terbuka]);
+
   return (
     <>
       {terbuka && (
         <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={onTutup} />
       )}
 
-      {/* Seluruh isi sidebar bisa di-scroll kalau tinggi layar kurang,
-          supaya tombol Logout di bawah tetap bisa dijangkau */}
+      {/* top-0 left-0 supaya laci menempel di pojok kiri atas layar (bukan di bawah topbar).
+          h-dvh mengikuti tinggi layar yang terlihat di HP, jadi Logout tidak tersembunyi.
+          Isi tetap bisa di-scroll kalau layar sangat pendek. */}
       <aside
-        className={`w-64 bg-white border-r-2 border-slate-200 fixed h-screen z-50 transition-transform duration-200 overflow-y-auto ${
+        className={`w-64 max-w-[85vw] bg-white border-r-2 border-slate-200 fixed top-0 left-0 h-dvh z-50 transition-transform duration-200 overflow-y-auto overscroll-contain ${
           terbuka ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0`}
       >

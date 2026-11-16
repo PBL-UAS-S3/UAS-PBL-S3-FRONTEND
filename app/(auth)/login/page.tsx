@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthHeader } from '@/components/auth/AuthHeader';
 import { PesanAuth } from '@/components/auth/PesanAuth';
-import { simpanSesi } from '@/lib/auth';
+import { ambilSesi, simpanSesi } from '@/lib/auth';
 import { MIN_PASSWORD } from '@/lib/validasi';
 import { masuk } from '@/services/authService';
 import { FormLogin } from './components/FormLogin';
@@ -16,6 +16,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [pesanError, setPesanError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Sudah login: tidak perlu ke halaman login lagi
+  useEffect(() => {
+    const sesi = ambilSesi();
+    if (sesi && sesi.role === 'manager') router.replace('/dashboard');
+  }, [router]);
 
   async function submit() {
     setPesanError('');

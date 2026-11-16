@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthHeader } from '@/components/auth/AuthHeader';
 import { PesanAuth } from '@/components/auth/PesanAuth';
+import { ambilSesi } from '@/lib/auth';
 import { MIN_PASSWORD, emailValid } from '@/lib/validasi';
 import { daftarManager } from '@/services/authService';
 import { FormRegister } from './components/FormRegister';
@@ -19,6 +20,12 @@ export default function RegisterPage() {
   const [pesanSukses, setPesanSukses] = useState('');
   const [emailBermasalah, setEmailBermasalah] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Sudah login: tidak perlu mendaftar lagi
+  useEffect(() => {
+    const sesi = ambilSesi();
+    if (sesi && sesi.role === 'manager') router.replace('/dashboard');
+  }, [router]);
 
   // Mengetik ulang email menghapus tanda merah di kolomnya
   function ubahEmail(v: string) {

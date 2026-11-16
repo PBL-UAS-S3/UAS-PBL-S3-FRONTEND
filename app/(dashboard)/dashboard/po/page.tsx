@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { NotifAlert } from '@/components/ui/NotifAlert';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Pagination } from '@/components/ui/Pagination';
 import { ModalZoomGambar } from '@/components/ui/ModalZoomGambar';
 import { useNotifikasi } from '@/hooks/useNotifikasi';
-import { ambilPO, setujuiPO, tolakPO } from '@/services/poService';
+import { ambilPO, buatPurchaseOrder, setujuiPO, tolakPO } from '@/services/poService';
 import { useFilterPO } from './hooks/useFilterPO';
 import { nomorPO, totalPO } from './helpers';
 import type { PO } from './types';
@@ -16,6 +17,7 @@ import { ToolbarPO } from './components/ToolbarPO';
 import { TabelPO } from './components/TabelPO';
 import { ModalDetailPO } from './components/ModalDetailPO';
 import { ModalTolakPO } from './components/ModalTolakPO';
+import { ModalPOManual } from './components/ModalPOManual';
 
 export default function PurchaseOrderPage() {
   const [pos, setPos] = useState<PO[]>([]);
@@ -26,6 +28,8 @@ export default function PurchaseOrderPage() {
   const [detail, setDetail] = useState<PO | null>(null);
   const [tolakTarget, setTolakTarget] = useState<PO | null>(null);
   const [zoomUrl, setZoomUrl] = useState<string | null>(null);
+  const [formManual, setFormManual] = useState(false);
+  const [menyimpan, setMenyimpan] = useState(false);
 
   const notif = useNotifikasi();
   const { tab, setTab, searchText, setSearchText, jumlahSesuaiTab, jumlahTersaring, halaman } =
@@ -85,6 +89,27 @@ export default function PurchaseOrderPage() {
     return res.data.error || 'Gagal menolak Purchase Order';
   }
 
+  // PO manual: mengembalikan pesan error, atau null kalau berhasil
+  async function buatManual(data: {
+    sku: string;
+    jumlah: number;
+    catatan: string;
+  }): Promise<string | null> {
+    setMenyimpan(true);
+
+    const res = await buatPurchaseOrder(data);
+    if (res.sesiHabis) return null;
+    setMenyimpan(false);
+
+    if (res.ok) {
+      notif.tampil('sukses', 'PO manual berhasil dibuat dan menunggu approval.');
+      setTab('menunggu');
+      await muat();
+      return null;
+    }
+    return res.data.error || 'Gagal membuat Purchase Order';
+  }
+
   const jumlahMenunggu = pos.filter((p) => p.status === 'pending').length;
   const jumlahDitolak = pos.filter((p) => p.status === 'ditolak').length;
   const jumlahSelesai = pos.filter((p) => p.status === 'selesai').length;
@@ -117,6 +142,16 @@ export default function PurchaseOrderPage() {
           nilaiBerjalan={nilaiBerjalan}
           selesai={jumlahSelesai}
         />
+
+        <div className="flex justify-end mb-3">
+          <button
+            onClick={() => setFormManual(true)}
+            className="inline-flex items-center gap-2 bg-[#1E3A8A] text-white text-base font-semibold px-5 py-2.5 rounded-xl hover:bg-[#172E6E] transition shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            Buat PO Manual
+          </button>
+        </div>
 
         <ToolbarPO
           tab={tab}
@@ -169,6 +204,18 @@ export default function PurchaseOrderPage() {
             return err;
           }}
           onTutup={() => setTolakTarget(null)}
+        />
+      )}
+
+      {formManual && (
+        <ModalPOManual
+          memproses={menyimpan}
+          onSimpan={async (data) => {
+            const err = await buatManual(data);
+            if (!err) setFormManual(false);
+            return err;
+          }}
+          onTutup={() => setFormManual(false)}
         />
       )}
 

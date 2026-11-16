@@ -1,10 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useSudahLogin } from '@/hooks/useSudahLogin';
 import { Reveal } from './Reveal';
 import { IlustrasiPaket } from './IlustrasiPaket';
 
 export function HeroSection() {
+  const { sudahLogin } = useSudahLogin();
+
   return (
     <section className="max-w-6xl mx-auto px-4 md:px-8 pt-12 md:pt-20 pb-10 grid md:grid-cols-2 gap-10 items-center">
       <Reveal>
@@ -19,18 +22,29 @@ export function HeroSection() {
           barcode — dilengkapi rekomendasi restock dari AI.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/register"
-            className="px-6 py-3 rounded-xl bg-[#1E3A8A] text-white text-base font-semibold hover:bg-[#172E6E] transition shadow-sm"
-          >
-            Mulai Sekarang →
-          </Link>
-          <Link
-            href="/login"
-            className="px-6 py-3 rounded-xl border-2 border-slate-300 text-slate-800 text-base font-semibold hover:bg-white transition"
-          >
-            Sudah punya akun? Masuk
-          </Link>
+          {sudahLogin ? (
+            <Link
+              href="/dashboard"
+              className="px-6 py-3 rounded-xl bg-[#1E3A8A] text-white text-base font-semibold hover:bg-[#172E6E] transition shadow-sm"
+            >
+              Buka Dashboard →
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/register"
+                className="px-6 py-3 rounded-xl bg-[#1E3A8A] text-white text-base font-semibold hover:bg-[#172E6E] transition shadow-sm"
+              >
+                Mulai Sekarang →
+              </Link>
+              <Link
+                href="/login"
+                className="px-6 py-3 rounded-xl border-2 border-slate-300 text-slate-800 text-base font-semibold hover:bg-white transition"
+              >
+                Sudah punya akun? Masuk
+              </Link>
+            </>
+          )}
         </div>
       </Reveal>
 
